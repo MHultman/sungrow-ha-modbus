@@ -4,7 +4,7 @@ A Home Assistant integration for Sungrow SH hybrid inverters (SH-RT, SH-T, SH-RS
 
 It is set up from the UI, and it does not open its own Modbus connection: it borrows one from Home Assistant's `modbus` integration, which keeps a single shared connection per device.
 
-> **Status: early. Tested only on the author's own inverter**, an SH8.0RT-V112 connected through a WiNet-S. It may behave differently on yours. Settings changed here change how your battery and grid connection behave, so check each control on your own system before you automate it.
+> **Status: early. Tested only on the author's own inverter**, an SH8.0RT-V112 connected through a WiNet-S. It may behave differently on yours. Trying it on another model? The [test checklist](docs/testing.md) and a [model report](https://github.com/MHultman/sungrow-ha-modbus/issues/new?template=model_report.yml) help get it confirmed. Settings changed here change how your battery and grid connection behave, so check each control on your own system before you automate it.
 
 ## Use at your own risk
 
@@ -21,6 +21,7 @@ It is not affiliated with, endorsed by or supported by Sungrow. See also the [li
 - [Energy dashboard](docs/energy-dashboard.md): which sensor goes where
 - [Energy managers and automations](docs/energy-managers.md): driving the inverter from EMHASS, Predbat, evcc or your own automations, and the Force battery action
 - [Troubleshooting](docs/troubleshooting.md): connection problems, unavailable entities, diagnostics, logs
+- [Testing on your inverter](docs/testing.md): a checklist from readings to every control, and how to send a model report
 - [Changelog](CHANGELOG.md)
 
 ## Requirements

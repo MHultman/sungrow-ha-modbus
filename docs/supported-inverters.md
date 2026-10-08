@@ -2,7 +2,7 @@
 
 The integration is for Sungrow's **SH hybrid inverters**: the ones with a battery input. It reads which model it is talking to from the inverter's device type code and only creates the entities that model has. The full list of models, and which entity each family gets, is in [Models and entities](models-and-entities.md).
 
-> **Tested so far:** only on the author's own inverter, an SH8.0RT-V112 connected through a WiNet-S. You use the integration at your own risk; see [Use at your own risk](../README.md#use-at-your-own-risk). The register map is the one mkaiser's YAML package has used for years, mainly on an SH10RT over its LAN port, with SH-RS, SH-RT-V112 and SH-K-20 owners reporting partial success. If you run it on another model, an issue saying what works and what does not, with the [diagnostics](troubleshooting.md#diagnostics) attached, helps everyone.
+> **Tested so far:** only on the author's own inverter, an SH8.0RT-V112 connected through a WiNet-S. You use the integration at your own risk; see [Use at your own risk](../README.md#use-at-your-own-risk). The register map is the one mkaiser's YAML package has used for years, mainly on an SH10RT over its LAN port, with SH-RS, SH-RT-V112 and SH-K-20 owners reporting partial success. If you run it on another model, work through the [test checklist](testing.md) and send a [model report](https://github.com/MHultman/sungrow-ha-modbus/issues/new?template=model_report.yml): saying what works and what does not, with the diagnostics attached, helps everyone.
 
 ## Families
 
@@ -35,7 +35,7 @@ Some values are only valid in some setups:
 
 An inverter whose device type code is not in the model table is set up **read-only**: the sensors and binary sensors an SH-RT gets, no controls, and its settings are never read or written. Sungrow's SG string inverters (the ones without a battery) answer the same identity registers, and an SH hybrid's settings could mean something else on them. A repair notice under **Settings → System → Repairs** says when this happens, with the code.
 
-If yours is an SH hybrid that shows up as "Unknown (0x…)", open an [issue](https://github.com/MHultman/sungrow-ha-modbus/issues) with its model name and that code.
+If yours is an SH hybrid that shows up as "Unknown (0x…)", send a [model report](https://github.com/MHultman/sungrow-ha-modbus/issues/new?template=model_report.yml) with its model name and that code.
 
 ## Not supported
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- [Testing on your inverter](https://github.com/MHultman/sungrow-ha-modbus/blob/main/docs/testing.md): a checklist from the readings to every control, in an order that is safe to follow, saying how to put each setting back.
+- A [model report](https://github.com/MHultman/sungrow-ha-modbus/issues/new?template=model_report.yml) issue form that follows the checklist, for telling how the integration works on an inverter.
+
 ## 0.6.0 - 2026-10-08
 
 ### Added

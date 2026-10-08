@@ -1,0 +1,122 @@
+name: Model report
+description: Tell how the integration works on your inverter, whether everything works or not.
+title: "Model report: "
+labels:
+  - model report
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing! Reports like this one are how a model goes from "expected to work" to tested.
+        The [test checklist](https://github.com/MHultman/sungrow-ha-modbus/blob/main/docs/testing.md) has the steps the questions below refer to. A report that says everything worked is just as useful as one that lists problems.
+
+  - type: input
+    id: model
+    attributes:
+      label: Inverter model
+      description: As on the device page, or the inverter's label.
+      placeholder: SH8.0RT-V112
+    validations:
+      required: true
+
+  - type: input
+    id: device_type_code
+    attributes:
+      label: Device type code
+      description: The model ID on the device page.
+      placeholder: "0x0E0E"
+    validations:
+      required: true
+
+  - type: input
+    id: firmware
+    attributes:
+      label: Inverter firmware
+      description: The software version on the device page (ARM), and the DSP version from the diagnostics if you have it.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: connection
+    attributes:
+      label: Connected through
+      options:
+        - The inverter's own LAN port
+        - WiNet-S
+        - WiNet-S2
+        - Something else (say what below)
+    validations:
+      required: true
+
+  - type: input
+    id: winet_firmware
+    attributes:
+      label: WiNet firmware
+      description: Only when connected through a WiNet-S or WiNet-S2. Shown in its web interface or in iSolarCloud.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: battery
+    attributes:
+      label: Battery
+      options:
+        - None
+        - Sungrow SBR
+        - Sungrow SBH
+        - Another battery (say which below)
+    validations:
+      required: true
+
+  - type: input
+    id: versions
+    attributes:
+      label: Integration and Home Assistant versions
+      placeholder: SunGrow Modbus 0.6.0, Home Assistant 2026.10.1
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: worked
+    attributes:
+      label: What worked
+      description: Tick each section of the test checklist that did everything it says. Leave out the ones you skipped or that had a problem.
+      options:
+        - label: "1. Setup and readings: values match iSolarCloud, with the right signs"
+        - label: "2. Settings read back: every control shows what iSolarCloud shows"
+        - label: "3. Single settings: each change shows in iSolarCloud and works"
+        - label: "4. Operating mode: every option does what it says"
+        - label: "5. Export mode"
+        - label: "6. Force battery: ends by itself, also across a restart"
+        - label: "7. Connection: recovers by itself after an outage and a restart"
+        - label: "8. Start and stop"
+
+  - type: dropdown
+    id: forced_power_unit
+    attributes:
+      label: Forced power unit
+      description: In section 4, did a forced charge at 1000 W charge the battery at about 1000 W?
+      options:
+        - "Yes, it is in watts"
+        - "No, it charged at a percentage of the maximum, or some other power"
+        - Did not test
+    validations:
+      required: true
+
+  - type: textarea
+    id: problems
+    attributes:
+      label: What did not work
+      description: For each problem, the step, what you expected, and what happened instead. Entities that stay unavailable, and repair notices, are worth naming too.
+    validations:
+      required: false
+
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: |
+        Drag the file from **Download diagnostics** on the device page in here. The host address and serial number are already removed from it.
+        A debug log of anything that went wrong helps too; see [Logs](https://github.com/MHultman/sungrow-ha-modbus/blob/main/docs/troubleshooting.md#logs).
+    validations:
+      required: true

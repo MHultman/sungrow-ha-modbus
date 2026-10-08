@@ -2,6 +2,8 @@
 
 import re
 
+import yaml
+
 from script.generate_docs import OUTPUT, ROOT, render
 
 
@@ -23,3 +25,18 @@ def test_changelog_links_are_absolute() -> None:
     links = re.findall(r"\]\(([^)]+)\)", (ROOT / "CHANGELOG.md").read_text())
 
     assert [link for link in links if not link.startswith("https://")] == []
+
+
+def test_model_report_follows_the_checklist() -> None:
+    """Test the model report asks about each section of the test checklist."""
+    template = yaml.safe_load(
+        (ROOT / ".github" / "ISSUE_TEMPLATE" / "model_report.yml").read_text()
+    )
+    worked = next(field for field in template["body"] if field.get("id") == "worked")
+    sections = re.findall(
+        r"^## (\d+)\. (.+)$", (ROOT / "docs" / "testing.md").read_text(), re.MULTILINE
+    )
+
+    assert [
+        option["label"].split(":")[0] for option in worked["attributes"]["options"]
+    ] == [f"{number}. {title}" for number, title in sections]
