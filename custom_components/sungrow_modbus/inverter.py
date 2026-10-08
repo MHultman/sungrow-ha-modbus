@@ -1,9 +1,11 @@
-"""Read a Sungrow hybrid inverter over a shared Modbus unit.
+"""Read and write a Sungrow hybrid inverter over a shared Modbus unit.
 
 Nothing here knows about Home Assistant: it reads blocks of registers, keeps
-the words they returned, and decodes values from them on request.
+the words they returned, decodes values from them on request, and writes
+settings.
 """
 
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from typing import Self
 
@@ -14,22 +16,32 @@ from modbus_connection import (
     ModbusUnit,
 )
 
-from .models import InverterModel, inverter_model
+from .models import Family, InverterModel, inverter_model
 from .registers import (
     ARM_SOFTWARE,
     BACKUP_METER,
+    BACKUP_RESERVE,
     BATTERY_GRID,
+    BATTERY_POWER_LIMITS,
+    BATTERY_START_POWER,
     DEVICE_TYPE_CODE,
     DSP_SOFTWARE,
+    EMS,
+    EXPORT_LIMIT_BACKUP,
+    EXPORT_LIMIT_SWITCH,
     IDENTITY,
     INVERTER,
+    LOAD_ADJUSTMENT_MODE,
+    LOAD_ADJUSTMENT_SWITCH,
     METER_BMS,
     MPPT4,
     RATED_OUTPUT_POWER,
     SERIAL_NUMBER,
+    SOC_LIMITS,
     SYSTEM,
     Block,
     Register,
+    Space,
 )
 
 
@@ -39,6 +51,10 @@ class SungrowError(Exception):
 
 class SungrowConnectionError(SungrowError):
     """Nothing answered on the link."""
+
+
+class SungrowRejectedError(SungrowError):
+    """The inverter refused a value written to it."""
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -63,10 +79,40 @@ class Identity:
 
 async def _async_read(unit: ModbusUnit, block: Block) -> list[int]:
     """Read a block, translating a link that does not answer."""
+    read = (
+        unit.read_holding_registers
+        if block.space is Space.HOLDING
+        else unit.read_input_registers
+    )
     try:
-        return await unit.read_input_registers(block.start, block.count)
+        return await read(block.start, block.count)
     except (ModbusConnectionError, ModbusTimeoutError) as err:
         raise SungrowConnectionError(f"{block.name}: {err}") from err
+
+
+def _reading_blocks(model: InverterModel) -> tuple[Block, ...]:
+    """Return the measurement blocks a model serves."""
+    blocks = [INVERTER, BATTERY_GRID, METER_BMS, BACKUP_METER, SYSTEM]
+    if model.mppt_count >= 4:
+        blocks.append(MPPT4)
+    return tuple(blocks)
+
+
+def _setting_blocks(model: InverterModel) -> tuple[Block, ...]:
+    """Return the settings blocks a model serves."""
+    blocks = [
+        EMS,
+        SOC_LIMITS,
+        BACKUP_RESERVE,
+        EXPORT_LIMIT_BACKUP,
+        EXPORT_LIMIT_SWITCH,
+        BATTERY_POWER_LIMITS,
+        LOAD_ADJUSTMENT_MODE,
+        LOAD_ADJUSTMENT_SWITCH,
+    ]
+    if model.family is not Family.RS:
+        blocks.append(BATTERY_START_POWER)
+    return tuple(blocks)
 
 
 class SungrowInverter:
@@ -77,11 +123,9 @@ class SungrowInverter:
         self._unit = unit
         self.identity = identity
         self._words: dict[str, list[int]] = {}
-
-        blocks = [INVERTER, BATTERY_GRID, METER_BMS, BACKUP_METER, SYSTEM]
-        if identity.model.mppt_count >= 4:
-            blocks.append(MPPT4)
-        self.blocks: tuple[Block, ...] = tuple(blocks)
+        # Measurements move by the second; settings only when written.
+        self.reading_blocks = _reading_blocks(identity.model)
+        self.setting_blocks = _setting_blocks(identity.model)
 
     @classmethod
     async def async_probe(cls, unit: ModbusUnit) -> Self:
@@ -110,8 +154,8 @@ class SungrowInverter:
         )
         return cls(unit, identity)
 
-    async def async_update(self) -> PollReport:
-        """Read every block, keeping the words of those that answered.
+    async def async_update(self, blocks: Iterable[Block]) -> PollReport:
+        """Read blocks, keeping the words of those that answered.
 
         A block the inverter refuses fails on its own. A link that stops
         answering ends the poll, since every later block would wait out the
@@ -120,7 +164,7 @@ class SungrowInverter:
         updated: set[str] = set()
         failed: dict[str, str] = {}
 
-        for block in self.blocks:
+        for block in blocks:
             try:
                 self._words[block.name] = await _async_read(self._unit, block)
             except ModbusError as err:
@@ -129,6 +173,24 @@ class SungrowInverter:
                 updated.add(block.name)
 
         return PollReport(updated=frozenset(updated), failed=failed)
+
+    async def async_write(self, register: Register, value: float) -> None:
+        """Write a setting, and keep it as what its block last reported.
+
+        Raises `ValueError` for a value the register cannot hold,
+        `SungrowConnectionError` when nothing answers, and
+        `SungrowRejectedError` when the inverter refuses the value.
+        """
+        raw = register.encode(value)
+        try:
+            await self._unit.write_register(register.address, raw)
+        except (ModbusConnectionError, ModbusTimeoutError) as err:
+            raise SungrowConnectionError(f"{register.address}: {err}") from err
+        except ModbusError as err:
+            raise SungrowRejectedError(f"{register.address}: {err}") from err
+
+        if (words := self._words.get(register.block.name)) is not None:
+            words[register.address - register.block.start] = raw
 
     def value(self, register: Register) -> float | int | str | None:
         """Return a register's value as its block last reported it."""

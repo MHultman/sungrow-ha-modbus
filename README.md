@@ -6,7 +6,7 @@ It works the way Home Assistant's built-in [SolarEdge Modbus](https://www.home-a
 
 The register map comes from mkaiser's [Sungrow-SHx-Inverter-Modbus-Home-Assistant](https://github.com/mkaiser/Sungrow-SHx-Inverter-Modbus-Home-Assistant) YAML package (see [NOTICE](NOTICE)).
 
-> **Status: early, untested on real hardware.** So far it has only run against a simulated inverter. It is read-only: it reads the inverter and does not write to it. The controls the YAML package has (EMS mode, forced charge and discharge, SoC limits, export power limit, backup mode) are not here yet.
+> **Status: early, untested on real hardware.** So far it has only run against a simulated inverter. It reads the inverter and can change its settings: EMS mode, forced charge and discharge, SoC limits, export power limit and more. Settings changed here change how your battery and grid connection behave, so check each control on your own system before you automate it.
 
 ## Requirements
 
@@ -43,7 +43,51 @@ One device for the inverter, named after the model it reports, such as "Sungrow 
 - Energy, daily and lifetime: PV generation, export from PV, battery charge from PV, direct consumption, battery charge and discharge, grid import and export, and house consumption.
 - Smart meter values as the inverter relays them. These are only valid with the meter wired directly to the inverter, so they are disabled by default.
 
+- Battery level and charge relative to the SoC limits, as the YAML package computes them: battery level (nominal), battery charge (nominal), battery charge (what can still be drawn before the minimum SoC) and battery charge (health-rated).
+
 **Binary sensors**: PV generating, battery charging, battery discharging, exporting to grid and importing from grid, from the inverter's power flow status.
+
+## Controls
+
+| Entity | What it does |
+|---|---|
+| EMS mode (select) | Self-consumption, Forced, External EMS or VPP. |
+| Battery forced charge/discharge (select) | Stop, Forced charge or Forced discharge. Only acted on while the EMS mode is Forced. |
+| Battery forced charge/discharge power (number) | The power for forced charge or discharge, in W. |
+| Battery min SoC / max SoC (numbers) | The window the battery is used in: min 0–50 %, max 50–100 %. |
+| Battery max charge power / max discharge power (numbers) | Caps on battery power, from 10 W. Setting the discharge cap to 10 W keeps the battery from discharging. |
+| Export power limit (switch and number) | Limits export to the grid to the number's value, within the range the inverter reports. |
+| Backup mode (switch) | Keeps the backup output powered through a grid outage. |
+| Battery reserved SoC for backup (number) | Charge kept back for a grid outage. |
+| Battery charging start power / discharging start power (numbers) | The surplus or deficit that has to be reached before the battery starts charging or discharging. Not documented by Sungrow, and not on SH-RS models. |
+| Load adjustment mode (select) and Load adjustment (switch) | How the inverter drives a load from its DO relay. |
+| Start inverter / Stop inverter (buttons) | Starts or stops the inverter. |
+
+The less common ones (backup reserve, start powers, load adjustment, start/stop) are configuration entities, so they stay off auto-generated dashboards.
+
+A written value shows straight away. Settings are read back from the inverter every 60 seconds, so a change made in iSolarCloud shows within a minute.
+
+The forced charge/discharge power is in watts. Sungrow's documentation gives percent for the RT models, but RT inverters have been seen to take watts.
+
+### The YAML package's scenes
+
+The YAML package ships scenes for common setups. They map onto these entities like this:
+
+| Scene | EMS mode | Forced charge/discharge | Other |
+|---|---|---|---|
+| Self-consumption (max battery discharge) | Self-consumption | Stop | Battery max discharge power to your battery's limit |
+| Self-consumption (no battery discharge) | Self-consumption | Stop | Battery max discharge power to 10 W |
+| Zero export | | | Export power limit on, at 0 W |
+| Max export | | | Export power limit on, at its maximum |
+| Battery bypass | Forced | Stop | |
+| Battery forced charge | Forced | Forced charge | Forced power as wanted |
+| Battery forced discharge | Forced | Forced discharge | Forced power as wanted |
+
+### Left out on purpose
+
+- **Active power limitation** (registers 13089 and 13090): the YAML package only reads these and marks them untested, and some inverters (an SH8.0RT among them) answer that they are not supported.
+- **Forced startup under low SoC standby**: disabled in the YAML package because of a bug.
+- **Microgrid** EMS mode: for systems without a grid connection.
 
 ### Energy dashboard
 
@@ -59,7 +103,7 @@ Use the lifetime (`Total …`) counters. They never go down: a lower reading is 
 
 ## How it polls
 
-Every 10 seconds, in blocks of up to 48 registers at a time rather than one request per value. A block the inverter refuses makes only its own entities unavailable. If one request goes unanswered, which the WiNet-S does now and then, the poll is retried once before the entities go unavailable.
+Measurements every 10 seconds and settings every 60, in blocks of registers rather than one request per value. A block the inverter refuses makes only its own entities unavailable. If one request goes unanswered, which the WiNet-S does now and then, the poll is retried once before the entities go unavailable.
 
 ## Troubleshooting
 

@@ -123,6 +123,29 @@ def seed_inverter(unit: MockModbusUnit, device_type_code: int = SH8_0RT_V112) ->
     )
 
 
+def seed_settings(unit: MockModbusUnit) -> None:
+    """Seed a unit's settings: self-consumption, export limited to 8 kW.
+
+    One address per register, so a write to one leaves its neighbours be.
+    """
+    settings: dict[int, int | list[int]] = {
+        13001: 3,  # load adjustment mode: disabled
+        13010: 0x55,  # load adjustment: off
+        13049: [0, 0xCC, 4200],  # EMS mode, forced command, forced power
+        13057: [1000, 50],  # max SoC 100.0 %, min SoC 5.0 %
+        13073: [8000, 0x55],  # export power limit, backup mode off
+        13086: 0xAA,  # export power limit: on
+        13099: 5,  # reserved SoC for backup
+        33046: [1060, 420],  # max charge 10600 W, max discharge 4200 W
+        33148: [0, 19],  # charging start 0 W, discharging start 190 W
+    }
+    for address, value in settings.items():
+        words = value if isinstance(value, list) else [value]
+        unit.holding.update(
+            {address + offset: word for offset, word in enumerate(words)}
+        )
+
+
 def set_u32(unit: MockModbusUnit, address: int, value: int) -> None:
     """Change a 32-bit register on a seeded unit."""
     unit.input[address] = _u32(value)
@@ -138,6 +161,7 @@ def mock_modbus_unit(mock_modbus_connection: MockModbusConnection) -> MockModbus
     """Return a seeded Sungrow inverter on unit ``UNIT_ID``."""
     unit = mock_modbus_connection.for_unit(UNIT_ID)
     seed_inverter(unit)
+    seed_settings(unit)
     return unit
 
 

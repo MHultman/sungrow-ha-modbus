@@ -1,6 +1,10 @@
 """Tests for reading a Sungrow inverter, outside of Home Assistant."""
 
-from modbus_connection import IllegalDataAddressError, ModbusConnectionError
+from modbus_connection import (
+    IllegalDataAddressError,
+    IllegalDataValueError,
+    ModbusConnectionError,
+)
 from modbus_connection.mock import MockModbusUnit
 import pytest
 
@@ -8,12 +12,14 @@ from custom_components.sungrow_modbus.inverter import (
     SungrowConnectionError,
     SungrowError,
     SungrowInverter,
+    SungrowRejectedError,
 )
 from custom_components.sungrow_modbus.models import inverter_model
 from custom_components.sungrow_modbus.registers import (
     BATTERY_POWER,
     INVERTER,
     METER_ACTIVE_POWER,
+    MIN_SOC,
     MPPT4,
     PHASE_A_VOLTAGE,
     REACTIVE_POWER,
@@ -21,6 +27,7 @@ from custom_components.sungrow_modbus.registers import (
     Block,
     Kind,
     Register,
+    Space,
 )
 
 from .conftest import SERIAL_NUMBER, seed_inverter
@@ -108,7 +115,7 @@ async def test_probe(mock_modbus_unit: MockModbusUnit) -> None:
     assert inverter.identity.arm_software == "ARM_SAPPHIRE-H_V11_V01_B"
     assert inverter.identity.dsp_software == "MDSP_SAPPHIRE-H_V11_V01_B"
     assert inverter.identity.rated_output_power == 8000
-    assert MPPT4 not in inverter.blocks
+    assert MPPT4 not in inverter.reading_blocks
 
 
 async def test_probe_four_mppts(mock_modbus_unit: MockModbusUnit) -> None:
@@ -117,7 +124,7 @@ async def test_probe_four_mppts(mock_modbus_unit: MockModbusUnit) -> None:
 
     inverter = await SungrowInverter.async_probe(mock_modbus_unit)
 
-    assert MPPT4 in inverter.blocks
+    assert MPPT4 in inverter.reading_blocks
 
 
 async def test_probe_no_answer(mock_modbus_unit: MockModbusUnit) -> None:
@@ -148,9 +155,9 @@ async def test_update(mock_modbus_unit: MockModbusUnit) -> None:
     """Test a poll reads every block and decodes from what came back."""
     inverter = await SungrowInverter.async_probe(mock_modbus_unit)
 
-    report = await inverter.async_update()
+    report = await inverter.async_update(inverter.reading_blocks)
 
-    assert report.updated == {block.name for block in inverter.blocks}
+    assert report.updated == {block.name for block in inverter.reading_blocks}
     assert report.failed == {}
     assert inverter.value(PHASE_A_VOLTAGE) == 230.1
     assert inverter.value(REACTIVE_POWER) == -150
@@ -161,12 +168,12 @@ async def test_update(mock_modbus_unit: MockModbusUnit) -> None:
 async def test_update_block_refused(mock_modbus_unit: MockModbusUnit) -> None:
     """Test a block the inverter refuses fails alone, keeping its last words."""
     inverter = await SungrowInverter.async_probe(mock_modbus_unit)
-    await inverter.async_update()
+    await inverter.async_update(inverter.reading_blocks)
 
     mock_modbus_unit.fail_read(
         INVERTER.start, IllegalDataAddressError(), register_type="input"
     )
-    report = await inverter.async_update()
+    report = await inverter.async_update(inverter.reading_blocks)
 
     assert INVERTER.name in report.failed
     assert SYSTEM.name in report.updated
@@ -180,7 +187,7 @@ async def test_update_link_down(mock_modbus_unit: MockModbusUnit) -> None:
     mock_modbus_unit.fail_requests(ModbusConnectionError("gone"))
 
     with pytest.raises(SungrowConnectionError):
-        await inverter.async_update()
+        await inverter.async_update(inverter.reading_blocks)
 
     assert len(mock_modbus_unit.read_events) == 1
 
@@ -190,3 +197,74 @@ async def test_value_before_first_poll(mock_modbus_unit: MockModbusUnit) -> None
     inverter = await SungrowInverter.async_probe(mock_modbus_unit)
 
     assert inverter.value(PHASE_A_VOLTAGE) is None
+
+
+HOLDING_BLOCK = Block(name="settings", space=Space.HOLDING, start=200, count=2)
+
+
+@pytest.mark.parametrize(
+    ("scale", "value", "raw"),
+    [(1, 4200, 4200), (0.1, 15, 150), (0.1, 15.04, 150), (10, 10600, 1060)],
+)
+def test_register_encode(scale: float, value: float, raw: int) -> None:
+    """Test a value is written in the register's own units."""
+    register = Register(block=HOLDING_BLOCK, address=200, kind=Kind.UINT16, scale=scale)
+
+    assert register.encode(value) == raw
+
+
+@pytest.mark.parametrize(
+    "register",
+    [
+        # Measurements are input registers, which cannot be written.
+        Register(block=TEST_BLOCK, address=100, kind=Kind.UINT16),
+        Register(block=HOLDING_BLOCK, address=200, kind=Kind.INT32),
+    ],
+)
+def test_register_not_writable(register: Register) -> None:
+    """Test only single unsigned settings words are ever written."""
+    with pytest.raises(ValueError, match="not writable"):
+        register.encode(1)
+
+
+@pytest.mark.parametrize("value", [-1, 0x10000, 0xFFFF])
+def test_register_encode_out_of_range(value: int) -> None:
+    """Test a value the word cannot hold, or its "not available" marker, is refused."""
+    register = Register(
+        block=HOLDING_BLOCK, address=200, kind=Kind.UINT16, invalid=0xFFFF
+    )
+
+    with pytest.raises(ValueError, match="does not fit"):
+        register.encode(value)
+
+
+async def test_write(mock_modbus_unit: MockModbusUnit) -> None:
+    """Test a write reaches the inverter and is kept as its block's value."""
+    inverter = await SungrowInverter.async_probe(mock_modbus_unit)
+    await inverter.async_update(inverter.setting_blocks)
+
+    await inverter.async_write(MIN_SOC, 15)
+
+    assert mock_modbus_unit.holding[13058] == 150
+    assert inverter.value(MIN_SOC) == 15
+
+
+@pytest.mark.parametrize(
+    ("error", "raised"),
+    [
+        (IllegalDataValueError(), SungrowRejectedError),
+        (ModbusConnectionError("gone"), SungrowConnectionError),
+    ],
+)
+async def test_write_fails(
+    mock_modbus_unit: MockModbusUnit, error: Exception, raised: type[Exception]
+) -> None:
+    """Test a refused write and a lost one are told apart."""
+    inverter = await SungrowInverter.async_probe(mock_modbus_unit)
+    await inverter.async_update(inverter.setting_blocks)
+    mock_modbus_unit.fail_write(13058, error)
+
+    with pytest.raises(raised):
+        await inverter.async_write(MIN_SOC, 15)
+
+    assert inverter.value(MIN_SOC) == 5

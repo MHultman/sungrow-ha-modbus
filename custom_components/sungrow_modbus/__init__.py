@@ -14,7 +14,13 @@ from homeassistant.exceptions import (
     HomeAssistantError,
 )
 
-from .const import CONF_CONNECTION, CONF_UNIT_ID, DOMAIN
+from .const import (
+    CONF_CONNECTION,
+    CONF_UNIT_ID,
+    DOMAIN,
+    SCAN_INTERVAL,
+    SETTINGS_SCAN_INTERVAL,
+)
 from .coordinator import (
     SungrowModbusConfigEntry,
     SungrowModbusDataUpdateCoordinator,
@@ -24,7 +30,14 @@ from .entity import inverter_device_info
 from .helpers import apply_link_timing, create_modbus_params
 from .inverter import SungrowConnectionError, SungrowError, SungrowInverter
 
-PLATFORMS = [Platform.BINARY_SENSOR, Platform.SENSOR]
+PLATFORMS = [
+    Platform.BINARY_SENSOR,
+    Platform.BUTTON,
+    Platform.NUMBER,
+    Platform.SELECT,
+    Platform.SENSOR,
+    Platform.SWITCH,
+]
 
 
 async def async_setup_entry(
@@ -68,11 +81,29 @@ async def async_setup_entry(
             translation_key="wrong_inverter",
         )
 
-    coordinator = SungrowModbusDataUpdateCoordinator(hass, entry, inverter)
-    await coordinator.async_config_entry_first_refresh()
+    readings = SungrowModbusDataUpdateCoordinator(
+        hass,
+        entry,
+        inverter,
+        blocks=inverter.reading_blocks,
+        interval=SCAN_INTERVAL,
+    )
+    settings = SungrowModbusDataUpdateCoordinator(
+        hass,
+        entry,
+        inverter,
+        blocks=inverter.setting_blocks,
+        interval=SETTINGS_SCAN_INTERVAL,
+    )
+
+    await readings.async_config_entry_first_refresh()
+    # The readings already proved the link; settings that refuse one read leave
+    # their own controls unavailable instead of failing setup.
+    await settings.async_refresh()
 
     entry.runtime_data = SungrowModbusRuntimeData(
-        coordinator=coordinator,
+        readings=readings,
+        settings=settings,
         device_info=inverter_device_info(inverter.identity),
     )
 

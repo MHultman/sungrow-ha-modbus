@@ -252,16 +252,80 @@ def _consumed(
     """Return the energy the house used: what came in minus what went out."""
 
     def value(inverter: SungrowInverter) -> float | None:
-        values = [
-            inverter.value(register)
-            for register in (generation, export, grid_import, charge, discharge)
-        ]
-        if not all(isinstance(value, (int, float)) for value in values):
+        values = _numbers(inverter, generation, export, grid_import, charge, discharge)
+        if values is None:
             return None
         pv, exported, imported, charged, discharged = values
         return round(pv - exported + imported - charged + discharged, 1)
 
     return value
+
+
+def _numbers(inverter: SungrowInverter, *registers: Register) -> list[float] | None:
+    """Return several registers' values, or None unless all of them have one."""
+    values = [inverter.value(register) for register in registers]
+    numbers = [value for value in values if isinstance(value, (int, float))]
+    return numbers if len(numbers) == len(values) else None
+
+
+def _battery_level_nominal(inverter: SungrowInverter) -> float | None:
+    """Return the charge as a share of the whole battery.
+
+    The battery level the inverter reports runs from 0 % at the minimum SoC to
+    100 % at the maximum. With limits of 15 % and 90 %, a reported 50 % is
+    52.5 % of the whole battery.
+    """
+    values = _numbers(inverter, reg.MIN_SOC, reg.MAX_SOC, reg.BATTERY_LEVEL)
+    if values is None:
+        return None
+    low, high, level = values
+    return round(low + (high - low) * level / 100, 1)
+
+
+def _battery_charge_nominal(inverter: SungrowInverter) -> float | None:
+    """Return the energy stored in the whole battery."""
+    capacity = inverter.value(reg.BATTERY_CAPACITY)
+    if (level := _battery_level_nominal(inverter)) is None or not isinstance(
+        capacity, (int, float)
+    ):
+        return None
+    return round(capacity * level / 100, 2)
+
+
+def _battery_charge(inverter: SungrowInverter) -> float | None:
+    """Return the energy that can still be drawn before the minimum SoC."""
+    values = _numbers(
+        inverter, reg.BATTERY_CAPACITY, reg.MIN_SOC, reg.MAX_SOC, reg.BATTERY_LEVEL
+    )
+    if values is None:
+        return None
+    capacity, low, high, level = values
+    return round(capacity * (high - low) / 100 * level / 100, 2)
+
+
+def _battery_charge_health_rated(inverter: SungrowInverter) -> float | None:
+    """Return the drawable energy, scaled down by the battery's wear."""
+    health = inverter.value(reg.BATTERY_STATE_OF_HEALTH)
+    if (charge := _battery_charge(inverter)) is None or not isinstance(
+        health, (int, float)
+    ):
+        return None
+    return round(charge * health / 100, 2)
+
+
+def _battery_energy(
+    key: str, value_fn: Callable[[SungrowInverter], float | None]
+) -> SungrowModbusSensorEntityDescription:
+    return SungrowModbusSensorEntityDescription(
+        key=key,
+        translation_key=key,
+        blocks=(reg.SYSTEM, reg.METER_BMS, reg.SOC_LIMITS),
+        device_class=SensorDeviceClass.ENERGY_STORAGE,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=2,
+        value_fn=value_fn,
+    )
 
 
 def _consumed_energy(
@@ -454,6 +518,20 @@ SENSORS: tuple[SungrowModbusSensorEntityDescription, ...] = (
         suggested_display_precision=2,
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
+    # What the YAML package computes from the SoC limits.
+    SungrowModbusSensorEntityDescription(
+        key="battery_level_nominal",
+        translation_key="battery_level_nominal",
+        blocks=(reg.SYSTEM, reg.SOC_LIMITS),
+        device_class=SensorDeviceClass.BATTERY,
+        native_unit_of_measurement=PERCENTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=1,
+        value_fn=_battery_level_nominal,
+    ),
+    _battery_energy("battery_charge_nominal", _battery_charge_nominal),
+    _battery_energy("battery_charge", _battery_charge),
+    _battery_energy("battery_charge_health_rated", _battery_charge_health_rated),
     _voltage("battery_voltage", reg.BATTERY_VOLTAGE),
     _current("battery_current", reg.BATTERY_CURRENT, suggested_display_precision=1),
     _temperature("battery_temperature", reg.BATTERY_TEMPERATURE),

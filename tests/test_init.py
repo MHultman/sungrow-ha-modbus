@@ -157,3 +157,51 @@ async def test_poll_block_refused(
         hass.states.get("sensor.sungrow_sh8_0rt_v112_phase_a_voltage").state == "230.1"
     )
     assert "the inverter registers are answering again" in caplog.text
+
+
+async def test_setup_settings_refused(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_modbus_unit: MockModbusUnit,
+) -> None:
+    """Test settings the inverter refuses take only their own controls down."""
+    mock_modbus_unit.fail_read(13049, IllegalDataAddressError())
+    mock_config_entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert mock_config_entry.state is ConfigEntryState.LOADED
+    assert (
+        hass.states.get("select.sungrow_sh8_0rt_v112_ems_mode").state
+        == STATE_UNAVAILABLE
+    )
+    assert hass.states.get("number.sungrow_sh8_0rt_v112_battery_min_soc").state == "5.0"
+
+
+async def test_setup_settings_unanswered(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_modbus_unit: MockModbusUnit,
+) -> None:
+    """Test settings that time out at setup leave the measurements running."""
+    fail_settings = [ModbusTimeoutError("dropped")] * 2
+
+    def answer_or_drop() -> int:
+        if fail_settings:
+            raise fail_settings.pop()
+        return 0
+
+    mock_config_entry.add_to_hass(hass)
+    # Readings answer; the first settings read, and its retry, do not.
+    mock_modbus_unit.holding[13049] = answer_or_drop
+
+    await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert mock_config_entry.state is ConfigEntryState.LOADED
+    assert hass.states.get("sensor.sungrow_sh8_0rt_v112_battery_level").state == "65.4"
+    assert (
+        hass.states.get("select.sungrow_sh8_0rt_v112_ems_mode").state
+        == STATE_UNAVAILABLE
+    )

@@ -1,8 +1,9 @@
 """The Modbus register map of Sungrow SH hybrid inverters.
 
 Addresses are protocol addresses, one below the register numbers Sungrow's
-documentation lists (its register 5003 is address 5002 here). Every value is an
-input register. 32-bit values put their low word first.
+documentation lists (its register 5003 is address 5002 here). Measurements are
+input registers; settings are holding registers, which can also be written.
+32-bit values put their low word first.
 
 Registers are read in blocks rather than one by one: the WiNet-S answers a
 request in about the same time whatever its size, and a block that refuses to
@@ -15,19 +16,27 @@ package (MIT licensed, see NOTICE).
 
 from collections.abc import Sequence
 from dataclasses import dataclass
-from enum import Enum, auto
+from enum import Enum, StrEnum, auto
 from math import floor, log10
 
 from modbus_connection.decode import combine_words, decode_string
 
 
+class Space(StrEnum):
+    """The address space a block lives in."""
+
+    INPUT = "input"
+    HOLDING = "holding"
+
+
 @dataclass(frozen=True, kw_only=True)
 class Block:
-    """A run of input registers read in one request."""
+    """A run of registers read in one request."""
 
     name: str
     start: int
     count: int
+    space: Space = Space.INPUT
 
 
 class Kind(Enum):
@@ -88,6 +97,20 @@ class Register:
         if decimals == 0:
             return round(raw * self.scale)
         return round(raw * self.scale, decimals)
+
+    def encode(self, value: float) -> int:
+        """Encode a value into the word to write.
+
+        Only single unsigned words are ever written. Raises `ValueError` for a
+        value the register cannot hold.
+        """
+        if self.kind is not Kind.UINT16 or self.block.space is not Space.HOLDING:
+            raise ValueError(f"register {self.address} is not writable")
+
+        raw = round(value / self.scale)
+        if not 0 <= raw <= 0xFFFF or raw == self.invalid:
+            raise ValueError(f"{value} does not fit register {self.address}")
+        return raw
 
 
 # Who the inverter is. Read once while setting up.
@@ -246,3 +269,71 @@ TOTAL_BATTERY_CHARGE = Register(
 )
 DAILY_EXPORT = Register(block=SYSTEM, address=13044, kind=Kind.UINT16, scale=0.1)
 TOTAL_EXPORT = Register(block=SYSTEM, address=13045, kind=Kind.UINT32, scale=0.1)
+
+# Settings. Each block covers only registers Sungrow documents (or the
+# community has reverse engineered), with no gaps, since an undocumented
+# holding register may be refused and would take the block down with it.
+
+# Writing 0xCF here starts the inverter, 0xCE stops it. Never read.
+START_STOP = Block(name="start_stop", space=Space.HOLDING, start=12999, count=1)
+LOAD_ADJUSTMENT_MODE = Block(
+    name="load_adjustment_mode", space=Space.HOLDING, start=13001, count=1
+)
+LOAD_ADJUSTMENT_SWITCH = Block(
+    name="load_adjustment_switch", space=Space.HOLDING, start=13010, count=1
+)
+EMS = Block(name="ems", space=Space.HOLDING, start=13049, count=3)
+SOC_LIMITS = Block(name="soc_limits", space=Space.HOLDING, start=13057, count=2)
+EXPORT_LIMIT_BACKUP = Block(
+    name="export_limit_backup", space=Space.HOLDING, start=13073, count=2
+)
+EXPORT_LIMIT_SWITCH = Block(
+    name="export_limit_switch", space=Space.HOLDING, start=13086, count=1
+)
+BACKUP_RESERVE = Block(name="backup_reserve", space=Space.HOLDING, start=13099, count=1)
+BATTERY_POWER_LIMITS = Block(
+    name="battery_power_limits", space=Space.HOLDING, start=33046, count=2
+)
+# Not documented by Sungrow, and not served by the SH-RS models.
+BATTERY_START_POWER = Block(
+    name="battery_start_power", space=Space.HOLDING, start=33148, count=2
+)
+
+# What a switch register holds while on and while off.
+SWITCH_ON = 0xAA
+SWITCH_OFF = 0x55
+
+START_STOP_COMMAND = Register(block=START_STOP, address=12999, kind=Kind.UINT16)
+LOAD_ADJUSTMENT_MODE_SELECTION = Register(
+    block=LOAD_ADJUSTMENT_MODE, address=13001, kind=Kind.UINT16
+)
+LOAD_ADJUSTMENT_ENABLED = Register(
+    block=LOAD_ADJUSTMENT_SWITCH, address=13010, kind=Kind.UINT16
+)
+EMS_MODE = Register(block=EMS, address=13049, kind=Kind.UINT16)
+FORCED_CHARGE_DISCHARGE_COMMAND = Register(block=EMS, address=13050, kind=Kind.UINT16)
+# Watts on the models it has been checked on, though Sungrow's documentation
+# gives percent for the RT models.
+FORCED_CHARGE_DISCHARGE_POWER = Register(block=EMS, address=13051, kind=Kind.UINT16)
+MAX_SOC = Register(block=SOC_LIMITS, address=13057, kind=Kind.UINT16, scale=0.1)
+MIN_SOC = Register(block=SOC_LIMITS, address=13058, kind=Kind.UINT16, scale=0.1)
+EXPORT_POWER_LIMIT = Register(
+    block=EXPORT_LIMIT_BACKUP, address=13073, kind=Kind.UINT16
+)
+BACKUP_MODE = Register(block=EXPORT_LIMIT_BACKUP, address=13074, kind=Kind.UINT16)
+EXPORT_POWER_LIMIT_ENABLED = Register(
+    block=EXPORT_LIMIT_SWITCH, address=13086, kind=Kind.UINT16
+)
+BACKUP_RESERVE_SOC = Register(block=BACKUP_RESERVE, address=13099, kind=Kind.UINT16)
+BATTERY_MAX_CHARGE_POWER = Register(
+    block=BATTERY_POWER_LIMITS, address=33046, kind=Kind.UINT16, scale=10
+)
+BATTERY_MAX_DISCHARGE_POWER = Register(
+    block=BATTERY_POWER_LIMITS, address=33047, kind=Kind.UINT16, scale=10
+)
+BATTERY_CHARGING_START_POWER = Register(
+    block=BATTERY_START_POWER, address=33148, kind=Kind.UINT16, scale=10, invalid=0xFFFF
+)
+BATTERY_DISCHARGING_START_POWER = Register(
+    block=BATTERY_START_POWER, address=33149, kind=Kind.UINT16, scale=10, invalid=0xFFFF
+)

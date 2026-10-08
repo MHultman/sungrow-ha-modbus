@@ -1,8 +1,9 @@
 SunGrow Modbus
 
-The Modbus register map, value scales and state codes in
-custom_components/sungrow_modbus/registers.py, models.py and sensor.py are
-taken from Sungrow-SHx-Inverter-Modbus-Home-Assistant
+The Modbus register map, value scales, state codes and setting values in
+custom_components/sungrow_modbus/registers.py, models.py, sensor.py,
+number.py, select.py, switch.py and button.py are taken from
+Sungrow-SHx-Inverter-Modbus-Home-Assistant
 (https://github.com/mkaiser/Sungrow-SHx-Inverter-Modbus-Home-Assistant),
 which carries the following license:
 

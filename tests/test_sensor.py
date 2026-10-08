@@ -46,6 +46,15 @@ PREFIX = "sensor.sungrow_sh8_0rt_v112"
         ("battery_level", "65.4"),
         ("battery_state_of_health", "99.0"),
         ("battery_capacity", "9.6"),
+        # The seeded limits are 5 % and 100 %, the battery 9.6 kWh.
+        # 5 + 95 * 65.4 %
+        ("battery_level_nominal", "67.1"),
+        # 9.6 kWh * 67.1 %
+        ("battery_charge_nominal", "6.44"),
+        # 9.6 kWh * 95 % * 65.4 %
+        ("battery_charge", "5.96"),
+        # 5.96 kWh * 99 % health
+        ("battery_charge_health_rated", "5.9"),
         ("battery_voltage", "401.2"),
         ("battery_current", "-2.5"),
         ("battery_temperature", "22.1"),

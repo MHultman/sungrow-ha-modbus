@@ -9,15 +9,16 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, override
 
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .coordinator import SungrowModbusConfigEntry, SungrowModbusDataUpdateCoordinator
-from .inverter import Identity
+from .inverter import Identity, SungrowConnectionError, SungrowRejectedError
 from .models import InverterModel
-from .registers import Block
+from .registers import Block, Register
 
 
 def inverter_name(model: InverterModel) -> str:
@@ -61,7 +62,10 @@ class SungrowModbusEntity(CoordinatorEntity[SungrowModbusDataUpdateCoordinator])
         description: SungrowModbusEntityDescription,
     ) -> None:
         """Initialize a SunGrow Modbus entity."""
-        super().__init__(coordinator=entry.runtime_data.coordinator)
+        self._runtime_data = entry.runtime_data
+        super().__init__(
+            coordinator=self._runtime_data.coordinator_for(description.blocks)
+        )
         self.entity_description = description
 
         serial_number = entry.unique_id
@@ -78,7 +82,32 @@ class SungrowModbusEntity(CoordinatorEntity[SungrowModbusDataUpdateCoordinator])
         An entity that reports a value from an earlier read as if it were
         current is lying about the device.
         """
-        failed = self.coordinator.data.failed
         return super().available and not any(
-            block.name in failed for block in self.entity_description.blocks
+            self._runtime_data.failed(block) for block in self.entity_description.blocks
         )
+
+    async def _async_write(self, register: Register, value: float) -> None:
+        """Write a setting, and show it straight away.
+
+        The inverter acknowledging the write is its confirmation, and the
+        written value is what its block holds now. Every entity reading it is
+        told at once, measurements computed from it included, rather than
+        making the caller wait for the link to read it all back.
+        """
+        try:
+            await self._runtime_data.inverter.async_write(register, value)
+        except SungrowConnectionError as err:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="communication_error",
+                translation_placeholders={"error": str(err)},
+            ) from err
+        except SungrowRejectedError as err:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="rejected_value",
+                translation_placeholders={"error": str(err)},
+            ) from err
+
+        for coordinator in (self._runtime_data.readings, self._runtime_data.settings):
+            coordinator.async_update_listeners()

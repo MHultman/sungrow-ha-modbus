@@ -7,7 +7,7 @@ from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant
 
-from .coordinator import SungrowModbusConfigEntry
+from .coordinator import SungrowModbusConfigEntry, SungrowModbusDataUpdateCoordinator
 
 TO_REDACT = {CONF_HOST, "serial_number"}
 
@@ -20,18 +20,32 @@ async def async_get_config_entry_diagnostics(
     The raw words of every block are what it takes to work out a register a
     model reports differently, so they go in as read.
     """
-    coordinator = entry.runtime_data.coordinator
-    inverter = coordinator.inverter
+    runtime_data = entry.runtime_data
+    inverter = runtime_data.inverter
 
     return {
         "config_entry": async_redact_data(entry.data, TO_REDACT),
         "identity": async_redact_data(asdict(inverter.identity), TO_REDACT),
         "last_poll": {
-            "updated": sorted(coordinator.data.updated),
-            "failed": coordinator.data.failed,
+            label: _last_poll(coordinator)
+            for label, coordinator in (
+                ("readings", runtime_data.readings),
+                ("settings", runtime_data.settings),
+            )
         },
         "registers": {
-            block.name: {"start": block.start, "words": inverter.raw.get(block.name)}
-            for block in inverter.blocks
+            block.name: {
+                "space": block.space,
+                "start": block.start,
+                "words": inverter.raw.get(block.name),
+            }
+            for block in (*inverter.reading_blocks, *inverter.setting_blocks)
         },
     }
+
+
+def _last_poll(coordinator: SungrowModbusDataUpdateCoordinator) -> dict[str, Any]:
+    """Return what a coordinator's last poll refreshed, and what it did not."""
+    if (report := coordinator.data) is None:
+        return {"updated": [], "failed": {}, "error": str(coordinator.last_exception)}
+    return {"updated": sorted(report.updated), "failed": report.failed}

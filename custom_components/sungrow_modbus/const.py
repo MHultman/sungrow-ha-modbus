@@ -22,3 +22,7 @@ DEFAULT_UNIT_ID: Final = 1
 
 # Local Modbus is cheap to read and PV production moves fast.
 SCAN_INTERVAL: Final = timedelta(seconds=10)
+
+# Settings only move when something writes them, so they do not need a
+# measurement's cadence. A write here refreshes them straight away.
+SETTINGS_SCAN_INTERVAL: Final = timedelta(seconds=60)

@@ -1,6 +1,7 @@
-"""DataUpdateCoordinator for the SunGrow Modbus integration."""
+"""DataUpdateCoordinators for the SunGrow Modbus integration."""
 
 from dataclasses import dataclass
+from datetime import timedelta
 from typing import override
 
 from homeassistant.config_entries import ConfigEntry
@@ -8,14 +9,15 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .const import DOMAIN, LOGGER, SCAN_INTERVAL
+from .const import DOMAIN, LOGGER
 from .inverter import PollReport, SungrowConnectionError, SungrowInverter
+from .registers import Block
 
 type SungrowModbusConfigEntry = ConfigEntry[SungrowModbusRuntimeData]
 
 
 class SungrowModbusDataUpdateCoordinator(DataUpdateCoordinator[PollReport]):
-    """Polls the inverter's register blocks over Modbus.
+    """Polls one set of the inverter's register blocks over Modbus.
 
     A poll can come back partial: a block the inverter refuses only takes its
     own entities down. The report names what refreshed, which is what entities
@@ -29,16 +31,20 @@ class SungrowModbusDataUpdateCoordinator(DataUpdateCoordinator[PollReport]):
         hass: HomeAssistant,
         entry: SungrowModbusConfigEntry,
         inverter: SungrowInverter,
+        *,
+        blocks: tuple[Block, ...],
+        interval: timedelta,
     ) -> None:
         """Initialize the coordinator."""
         self.inverter = inverter
+        self.blocks = blocks
         self._silent: set[str] = set()
         super().__init__(
             hass,
             LOGGER,
             config_entry=entry,
             name=entry.title,
-            update_interval=SCAN_INTERVAL,
+            update_interval=interval,
         )
 
     @override
@@ -63,11 +69,11 @@ class SungrowModbusDataUpdateCoordinator(DataUpdateCoordinator[PollReport]):
         whole interval over one of those would leave gaps in every graph.
         """
         try:
-            return await self.inverter.async_update()
+            return await self.inverter.async_update(self.blocks)
         except SungrowConnectionError as err:
             LOGGER.debug("%s: nothing answered (%s); polling again", self.name, err)
 
-        return await self.inverter.async_update()
+        return await self.inverter.async_update(self.blocks)
 
     def _log_silence(self, report: PollReport) -> None:
         """Log a block falling silent once, and log its return."""
@@ -87,10 +93,31 @@ class SungrowModbusDataUpdateCoordinator(DataUpdateCoordinator[PollReport]):
 class SungrowModbusRuntimeData:
     """Runtime data for a SunGrow Modbus config entry."""
 
-    coordinator: SungrowModbusDataUpdateCoordinator
+    readings: SungrowModbusDataUpdateCoordinator
+    settings: SungrowModbusDataUpdateCoordinator
     device_info: DeviceInfo
 
     @property
     def inverter(self) -> SungrowInverter:
-        """Return the polled inverter."""
-        return self.coordinator.inverter
+        """Return the polled inverter, which both coordinators share."""
+        return self.readings.inverter
+
+    def coordinator_for(
+        self, blocks: tuple[Block, ...]
+    ) -> SungrowModbusDataUpdateCoordinator:
+        """Return the coordinator that refreshes an entity reading these blocks.
+
+        A value that mixes measurements and settings moves with the
+        measurements, so it follows the faster of the two.
+        """
+        if blocks and all(block in self.settings.blocks for block in blocks):
+            return self.settings
+        return self.readings
+
+    def failed(self, block: Block) -> bool:
+        """Return whether a block did not answer its coordinator's last poll."""
+        return any(
+            # Settings that never answered have no report at all.
+            coordinator.data is not None and block.name in coordinator.data.failed
+            for coordinator in (self.readings, self.settings)
+        )
