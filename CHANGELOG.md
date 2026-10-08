@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.2 - 2026-10-08
+
+### Changed
+
+- Reports filed with the [model report](https://github.com/MHultman/sungrow-ha-modbus/issues/new?template=model_report.yml) form are labelled "model report". The integration itself is unchanged from 0.6.0.
+
 ## 0.6.1 - 2026-10-08
 
 ### Added
