@@ -15,6 +15,7 @@ From a review for anything that could harm an inverter or its statistics.
 
 - An optional battery max power in the integration's options, capping the forced charge/discharge power and the battery max charge and discharge power controls.
 - A write that gets no answer reads the settings back at once, since it may have landed anyway.
+- Documentation in `docs/`: supported inverters and how the families differ, a generated list of every model and which entities each family gets, connecting (LAN port or WiNet-S, one client at a time, several inverters), the controls and EMS modes with battery power figures for Sungrow's SBR and SBH batteries, the Energy dashboard, migrating from mkaiser's YAML package with an old-to-new entity table, and troubleshooting.
 
 ## 0.2.0 - 2026-10-08
 
