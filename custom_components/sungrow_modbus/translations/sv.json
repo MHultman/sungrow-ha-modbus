@@ -1,0 +1,474 @@
+{
+  "config": {
+    "abort": {
+      "already_configured": "Den här växelriktaren är redan konfigurerad.",
+      "reconfigure_successful": "Omkonfigurationen lyckades.",
+      "wrong_device": "Enheten på den här adressen är inte växelriktaren som posten gäller."
+    },
+    "error": {
+      "cannot_connect": "Kunde inte nå växelriktaren. Kontrollera adress och port, och att inget annat (till exempel ett Modbus-YAML-paket) är anslutet till den.",
+      "no_sungrow_inverter": "Något svarade, men det är ingen Sungrow hybridväxelriktare."
+    },
+    "step": {
+      "reconfigure": {
+        "data": {
+          "connection": "Ansluten via",
+          "host": "Värd",
+          "port": "Port"
+        },
+        "data_description": {
+          "connection": "WiNet-S-dongeln behöver långsammare och mer tålmodig avläsning än växelriktarens egen LAN-port.",
+          "host": "IP-adressen eller värdnamnet för WiNet-S-dongeln eller växelriktarens LAN-port.",
+          "port": "Modbus TCP-porten. Sungrow använder 502."
+        },
+        "description": "Ändra hur växelriktaren nås. Att ansluta via en WiNet-S tar ungefär 15 sekunder.",
+        "sections": {
+          "more_options": {
+            "data": {
+              "unit_id": "Enhets-ID"
+            },
+            "data_description": {
+              "unit_id": "Växelriktarens Modbus-enhets-ID. Sungrow använder 1."
+            },
+            "name": "Fler alternativ"
+          }
+        }
+      },
+      "user": {
+        "data": {
+          "connection": "Ansluten via",
+          "host": "Värd",
+          "port": "Port"
+        },
+        "data_description": {
+          "connection": "WiNet-S-dongeln behöver långsammare och mer tålmodig avläsning än växelriktarens egen LAN-port.",
+          "host": "IP-adressen eller värdnamnet för WiNet-S-dongeln eller växelriktarens LAN-port.",
+          "port": "Modbus TCP-porten. Sungrow använder 502."
+        },
+        "description": "Anslut till en Sungrow SH hybridväxelriktare via Modbus TCP. Att ansluta via en WiNet-S tar ungefär 15 sekunder.",
+        "sections": {
+          "more_options": {
+            "data": {
+              "unit_id": "Enhets-ID"
+            },
+            "data_description": {
+              "unit_id": "Växelriktarens Modbus-enhets-ID. Sungrow använder 1."
+            },
+            "name": "Fler alternativ"
+          }
+        }
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "battery_charging": {
+        "name": "Batteriet laddas"
+      },
+      "battery_discharging": {
+        "name": "Batteriet laddas ur"
+      },
+      "exporting": {
+        "name": "Exporterar till nätet"
+      },
+      "importing": {
+        "name": "Importerar från nätet"
+      },
+      "negative_load_power": {
+        "name": "Negativ lasteffekt"
+      },
+      "positive_load_power": {
+        "name": "Positiv lasteffekt"
+      },
+      "pv_generating": {
+        "name": "Solcellerna producerar"
+      }
+    },
+    "button": {
+      "start_inverter": {
+        "name": "Starta växelriktaren"
+      },
+      "stop_inverter": {
+        "name": "Stoppa växelriktaren"
+      }
+    },
+    "number": {
+      "backup_reserve_soc": {
+        "name": "Batteriets reserverade SoC för backup"
+      },
+      "battery_charging_start_power": {
+        "name": "Startnivå för batteriladdning"
+      },
+      "battery_discharging_start_power": {
+        "name": "Startnivå för batteriurladdning"
+      },
+      "battery_max_charge_power": {
+        "name": "Batteriets max laddeffekt"
+      },
+      "battery_max_discharge_power": {
+        "name": "Batteriets max urladdningseffekt"
+      },
+      "export_power_limit": {
+        "name": "Exportgräns"
+      },
+      "forced_charge_discharge_power": {
+        "name": "Effekt för forcerad laddning/urladdning"
+      },
+      "max_soc": {
+        "name": "Batteriets högsta SoC"
+      },
+      "min_soc": {
+        "name": "Batteriets lägsta SoC"
+      }
+    },
+    "select": {
+      "ems_mode": {
+        "name": "EMS-läge",
+        "state": {
+          "self_consumption": "Egenförbrukning",
+          "forced": "Forcerat",
+          "external_ems": "Extern EMS",
+          "vpp": "VPP"
+        }
+      },
+      "forced_charge_discharge": {
+        "name": "Forcerad laddning/urladdning av batteriet",
+        "state": {
+          "stop": "Stopp",
+          "charge": "Forcerad laddning",
+          "discharge": "Forcerad urladdning"
+        }
+      },
+      "load_adjustment_mode": {
+        "name": "Läge för laststyrning",
+        "state": {
+          "timing": "Tidsstyrd",
+          "on_off": "På/av",
+          "power_optimization": "Effektoptimering",
+          "disabled": "Avstängd"
+        }
+      }
+    },
+    "sensor": {
+      "backup_phase_a_power": {
+        "name": "Backupeffekt fas A"
+      },
+      "backup_phase_b_power": {
+        "name": "Backupeffekt fas B"
+      },
+      "backup_phase_c_power": {
+        "name": "Backupeffekt fas C"
+      },
+      "battery_capacity": {
+        "name": "Batterikapacitet"
+      },
+      "battery_charge": {
+        "name": "Batteriladdning"
+      },
+      "battery_charge_health_rated": {
+        "name": "Batteriladdning (hälsojusterad)"
+      },
+      "battery_charge_nominal": {
+        "name": "Batteriladdning (nominell)"
+      },
+      "battery_charging_power": {
+        "name": "Batteriets laddeffekt"
+      },
+      "battery_current": {
+        "name": "Batteriström"
+      },
+      "battery_discharging_power": {
+        "name": "Batteriets urladdningseffekt"
+      },
+      "battery_level": {
+        "name": "Batterinivå"
+      },
+      "battery_level_nominal": {
+        "name": "Batterinivå (nominell)"
+      },
+      "battery_power": {
+        "name": "Batterieffekt"
+      },
+      "battery_state_of_health": {
+        "name": "Batteriets hälsotillstånd"
+      },
+      "battery_temperature": {
+        "name": "Batteritemperatur"
+      },
+      "battery_voltage": {
+        "name": "Batterispänning"
+      },
+      "bdc_rated_power": {
+        "name": "Batteriomvandlarens märkeffekt"
+      },
+      "bms_max_charging_current": {
+        "name": "BMS max laddström"
+      },
+      "bms_max_discharging_current": {
+        "name": "BMS max urladdningsström"
+      },
+      "daily_battery_charge": {
+        "name": "Batteriladdning i dag"
+      },
+      "daily_battery_charge_from_pv": {
+        "name": "Batteriladdning från solceller i dag"
+      },
+      "daily_battery_discharge": {
+        "name": "Batteriurladdning i dag"
+      },
+      "daily_consumption": {
+        "name": "Förbrukning i dag"
+      },
+      "daily_direct_consumption": {
+        "name": "Direktförbrukning i dag"
+      },
+      "daily_export": {
+        "name": "Export i dag"
+      },
+      "daily_import": {
+        "name": "Import i dag"
+      },
+      "daily_output_energy": {
+        "name": "Solcellsproduktion och batteriurladdning i dag"
+      },
+      "daily_pv_export": {
+        "name": "Export från solceller i dag"
+      },
+      "daily_pv_generation": {
+        "name": "Solcellsproduktion i dag"
+      },
+      "export_power": {
+        "name": "Exporteffekt"
+      },
+      "export_power_limit_max": {
+        "name": "Exportgräns maximum"
+      },
+      "export_power_limit_min": {
+        "name": "Exportgräns minimum"
+      },
+      "grid_frequency": {
+        "name": "Nätfrekvens"
+      },
+      "grid_power": {
+        "name": "Näteffekt"
+      },
+      "import_power": {
+        "name": "Importeffekt"
+      },
+      "inverter_temperature": {
+        "name": "Växelriktarens temperatur"
+      },
+      "load_power": {
+        "name": "Lasteffekt"
+      },
+      "meter_active_power": {
+        "name": "Mätarens aktiva effekt"
+      },
+      "meter_phase_a_active_power": {
+        "name": "Mätarens aktiva effekt fas A"
+      },
+      "meter_phase_a_current": {
+        "name": "Mätarens ström fas A"
+      },
+      "meter_phase_a_voltage": {
+        "name": "Mätarens spänning fas A"
+      },
+      "meter_phase_b_active_power": {
+        "name": "Mätarens aktiva effekt fas B"
+      },
+      "meter_phase_b_current": {
+        "name": "Mätarens ström fas B"
+      },
+      "meter_phase_b_voltage": {
+        "name": "Mätarens spänning fas B"
+      },
+      "meter_phase_c_active_power": {
+        "name": "Mätarens aktiva effekt fas C"
+      },
+      "meter_phase_c_current": {
+        "name": "Mätarens ström fas C"
+      },
+      "meter_phase_c_voltage": {
+        "name": "Mätarens spänning fas C"
+      },
+      "mppt1_current": {
+        "name": "MPPT1 ström"
+      },
+      "mppt1_power": {
+        "name": "MPPT1 effekt"
+      },
+      "mppt1_voltage": {
+        "name": "MPPT1 spänning"
+      },
+      "mppt2_current": {
+        "name": "MPPT2 ström"
+      },
+      "mppt2_power": {
+        "name": "MPPT2 effekt"
+      },
+      "mppt2_voltage": {
+        "name": "MPPT2 spänning"
+      },
+      "mppt3_current": {
+        "name": "MPPT3 ström"
+      },
+      "mppt3_power": {
+        "name": "MPPT3 effekt"
+      },
+      "mppt3_voltage": {
+        "name": "MPPT3 spänning"
+      },
+      "mppt4_current": {
+        "name": "MPPT4 ström"
+      },
+      "mppt4_power": {
+        "name": "MPPT4 effekt"
+      },
+      "mppt4_voltage": {
+        "name": "MPPT4 spänning"
+      },
+      "phase_a_current": {
+        "name": "Ström fas A"
+      },
+      "phase_a_power": {
+        "name": "Effekt fas A"
+      },
+      "phase_a_voltage": {
+        "name": "Spänning fas A"
+      },
+      "phase_b_current": {
+        "name": "Ström fas B"
+      },
+      "phase_b_power": {
+        "name": "Effekt fas B"
+      },
+      "phase_b_voltage": {
+        "name": "Spänning fas B"
+      },
+      "phase_c_current": {
+        "name": "Ström fas C"
+      },
+      "phase_c_power": {
+        "name": "Effekt fas C"
+      },
+      "phase_c_voltage": {
+        "name": "Spänning fas C"
+      },
+      "power_factor": {
+        "name": "Effektfaktor"
+      },
+      "rated_output_power": {
+        "name": "Märkeffekt"
+      },
+      "reactive_power": {
+        "name": "Reaktiv effekt"
+      },
+      "running_state": {
+        "name": "Driftläge",
+        "state": {
+          "afci_self_test_shutdown": "Avstängd för AFCI-självtest",
+          "communication_fault": "Kommunikationsfel",
+          "derating": "Nedreglerad",
+          "dispatch": "Styrd drift",
+          "emergency_charging": "Nödladdning",
+          "emergency_stop": "Nödstopp",
+          "external_ems": "Extern EMS",
+          "fault": "Fel",
+          "forced_mode": "Forcerat läge",
+          "initial_standby": "Initialt vänteläge",
+          "intelligent_station_building": "Intelligent stationsuppbyggnad",
+          "key_stop": "Nyckelstopp",
+          "maintenance": "Underhåll",
+          "microgrid": "Mikronät",
+          "off_grid": "Ö-drift",
+          "off_grid_charge": "Laddning i ö-drift",
+          "open_loop": "Öppen slinga",
+          "restarting": "Startar om",
+          "running": "I drift",
+          "safe_mode": "Säkert läge",
+          "standby": "Vänteläge",
+          "starting": "Startar",
+          "stop": "Stoppad",
+          "uninitialized": "Ej initierad",
+          "update_failed": "Uppdateringen misslyckades",
+          "warning": "I drift med varning"
+        }
+      },
+      "total_active_power": {
+        "name": "Total aktiv effekt"
+      },
+      "total_backup_power": {
+        "name": "Total backupeffekt"
+      },
+      "total_battery_charge": {
+        "name": "Total batteriladdning"
+      },
+      "total_battery_charge_from_pv": {
+        "name": "Total batteriladdning från solceller"
+      },
+      "total_battery_discharge": {
+        "name": "Total batteriurladdning"
+      },
+      "total_consumption": {
+        "name": "Total förbrukning"
+      },
+      "total_dc_power": {
+        "name": "Total DC-effekt"
+      },
+      "total_direct_consumption": {
+        "name": "Total direktförbrukning"
+      },
+      "total_export": {
+        "name": "Total export"
+      },
+      "total_import": {
+        "name": "Total import"
+      },
+      "total_output_energy": {
+        "name": "Total solcellsproduktion och batteriurladdning"
+      },
+      "total_pv_export": {
+        "name": "Total export från solceller"
+      },
+      "total_pv_generation": {
+        "name": "Total solcellsproduktion"
+      }
+    },
+    "switch": {
+      "backup_mode": {
+        "name": "Backupläge"
+      },
+      "export_power_limit": {
+        "name": "Exportgräns"
+      },
+      "load_adjustment": {
+        "name": "Laststyrning"
+      }
+    }
+  },
+  "exceptions": {
+    "communication_error": {
+      "message": "Kunde inte kommunicera med växelriktaren: {error}"
+    },
+    "link_settings_in_use": {
+      "message": "Växelriktaren används redan med andra anslutningsinställningar: {error}"
+    },
+    "no_sungrow_inverter": {
+      "message": "Enheten på den här adressen är ingen Sungrow hybridväxelriktare."
+    },
+    "rejected_value": {
+      "message": "Växelriktaren avvisade värdet: {error}"
+    },
+    "wrong_inverter": {
+      "message": "En annan växelriktare svarar nu på den här adressen. Konfigurera om posten så att den pekar på rätt växelriktare."
+    }
+  },
+  "selector": {
+    "connection": {
+      "options": {
+        "lan": "Växelriktarens egen LAN-port",
+        "winet": "WiNet-S-dongel"
+      }
+    }
+  }
+}

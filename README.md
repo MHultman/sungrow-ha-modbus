@@ -33,6 +33,8 @@ The entities get new IDs, like `sensor.sungrow_sh8_0rt_v112_battery_level`, so t
 
 One device for the inverter, named after the model it reports, such as "Sungrow SH8.0RT-V112".
 
+The setup form, entity names and states are in English and Swedish, following Home Assistant's language setting.
+
 **Sensors**
 - Running state, translated, such as "Running", "Forced mode" or "Standby".
 - PV: voltage, current and power per MPPT, and total DC power. MPPT 3 and 4 only on models that have them.
