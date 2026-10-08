@@ -32,12 +32,15 @@ BUTTONS: tuple[SungrowModbusButtonEntityDescription, ...] = (
         key="start_inverter",
         translation_key="start_inverter",
         entity_category=EntityCategory.CONFIG,
+        entity_registry_enabled_default=False,
         command=0xCF,
     ),
     SungrowModbusButtonEntityDescription(
         key="stop_inverter",
         translation_key="stop_inverter",
         entity_category=EntityCategory.CONFIG,
+        # One press stops production, so nobody gets it without asking.
+        entity_registry_enabled_default=False,
         command=0xCE,
     ),
 )
@@ -49,6 +52,8 @@ async def async_setup_entry(
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up SunGrow Modbus button entities based on a config entry."""
+    if not entry.runtime_data.inverter.identity.model.known:
+        return
     async_add_entities(
         SungrowModbusButtonEntity(entry=entry, description=description)
         for description in BUTTONS

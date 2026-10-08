@@ -74,6 +74,8 @@ async def async_setup_entry(
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up SunGrow Modbus select entities based on a config entry."""
+    if not entry.runtime_data.inverter.identity.model.known:
+        return
     async_add_entities(
         SungrowModbusSelectEntity(entry=entry, description=description)
         for description in SELECTS

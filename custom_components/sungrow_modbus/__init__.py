@@ -15,9 +15,11 @@ from homeassistant.exceptions import (
 )
 
 from .const import (
+    CONF_BATTERY_MAX_POWER,
     CONF_CONNECTION,
     CONF_UNIT_ID,
     DOMAIN,
+    LOGGER,
     SCAN_INTERVAL,
     SETTINGS_SCAN_INTERVAL,
 )
@@ -81,6 +83,15 @@ async def async_setup_entry(
             translation_key="wrong_inverter",
         )
 
+    if not (model := inverter.identity.model).known:
+        LOGGER.warning(
+            "%s reports a device type code this integration does not know (%s);"
+            " it is set up read-only. If it is a Sungrow SH hybrid, please open an"
+            " issue with its model name",
+            entry.title,
+            model.name,
+        )
+
     readings = SungrowModbusDataUpdateCoordinator(
         hass,
         entry,
@@ -105,6 +116,7 @@ async def async_setup_entry(
         readings=readings,
         settings=settings,
         device_info=inverter_device_info(inverter.identity),
+        battery_max_power=entry.options.get(CONF_BATTERY_MAX_POWER),
     )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)

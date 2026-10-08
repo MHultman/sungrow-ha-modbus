@@ -24,6 +24,9 @@ class InverterModel:
     name: str
     family: Family
     mppt_count: int = 2
+    # Whether the model is one this integration knows. An unknown one may not
+    # be an SH hybrid at all, so nothing is ever written to it.
+    known: bool = True
 
     @property
     def three_phase(self) -> bool:
@@ -82,10 +85,13 @@ MODELS: dict[int, InverterModel] = {
 def inverter_model(device_type_code: int) -> InverterModel:
     """Return the model behind a device type code.
 
-    A code this table does not know yet is still a Sungrow hybrid, so it gets
-    the most common layout rather than being refused: an RT, with three phases
-    and two MPPTs.
+    A code this table does not know gets read with the most common layout, an
+    RT with three phases and two MPPTs, but is marked unknown: Sungrow's SG
+    string inverters answer the same identity registers, and the settings an
+    SH hybrid takes could mean something else on them.
     """
     if (model := MODELS.get(device_type_code)) is not None:
         return model
-    return _model(f"SH (0x{device_type_code:04X})", Family.RT)
+    return InverterModel(
+        name=f"Unknown (0x{device_type_code:04X})", family=Family.RT, known=False
+    )

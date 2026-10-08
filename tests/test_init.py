@@ -4,7 +4,7 @@ from freezegun.api import FrozenDateTimeFactory
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import device_registry as dr, entity_registry as er
 from modbus_connection import (
     IllegalDataAddressError,
     ModbusConnectionError,
@@ -19,7 +19,7 @@ from pytest_homeassistant_custom_component.common import (
 
 from custom_components.sungrow_modbus.const import DOMAIN, SCAN_INTERVAL
 
-from .conftest import SERIAL_NUMBER, entry_data
+from .conftest import SERIAL_NUMBER, entry_data, seed_inverter
 
 
 async def _async_poll(hass: HomeAssistant, freezer: FrozenDateTimeFactory) -> None:
@@ -205,3 +205,27 @@ async def test_setup_settings_unanswered(
         hass.states.get("select.sungrow_sh8_0rt_v112_ems_mode").state
         == STATE_UNAVAILABLE
     )
+
+
+async def test_unknown_model_is_read_only(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_modbus_unit: MockModbusUnit,
+    entity_registry: er.EntityRegistry,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test a model nobody knows gets sensors, but no controls and no settings."""
+    seed_inverter(mock_modbus_unit, device_type_code=0x0EFF)
+    mock_config_entry.add_to_hass(hass)
+
+    await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert mock_config_entry.state is ConfigEntryState.LOADED
+    entities = er.async_entries_for_config_entry(
+        entity_registry, mock_config_entry.entry_id
+    )
+    assert {entity.domain for entity in entities} == {"sensor", "binary_sensor"}
+    assert not any(entity.entity_id.endswith("_nominal") for entity in entities)
+    assert all(read.register_type == "input" for read in mock_modbus_unit.read_events)
+    assert "set up read-only" in caplog.text

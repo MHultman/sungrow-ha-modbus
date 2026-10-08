@@ -463,6 +463,19 @@
       "message": "En annan växelriktare svarar nu på den här adressen. Konfigurera om posten så att den pekar på rätt växelriktare."
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "battery_max_power": "Batteriets max effekt"
+        },
+        "data_description": {
+          "battery_max_power": "Begränsar reglagen för forcerad laddning/urladdning och batteriets max ladd- och urladdningseffekt, till exempel till vad batteritillverkaren rekommenderar. Lämna tomt för att tillåta upp till växelriktarens märkeffekt."
+        },
+        "title": "Alternativ"
+      }
+    }
+  },
   "selector": {
     "connection": {
       "options": {

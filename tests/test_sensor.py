@@ -201,3 +201,29 @@ async def test_lifetime_counter_restores(
     await hass.async_block_till_done()
 
     assert hass.states.get(entity_id).state == "25300.0"
+
+
+@pytest.mark.usefixtures("init_integration")
+async def test_counters_ignore_not_available(
+    hass: HomeAssistant,
+    mock_modbus_unit: MockModbusUnit,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """Test a counter's "not available" value never reaches the statistics."""
+    set_u32(mock_modbus_unit, 13036, 0xFFFFFFFF)
+    mock_modbus_unit.input[13035] = 0xFFFF
+    freezer.tick(SCAN_INTERVAL)
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+
+    # The lifetime counter keeps its last real value; today's has none.
+    assert hass.states.get(f"{PREFIX}_total_import").state == "25206.1"
+    assert hass.states.get(f"{PREFIX}_daily_import").state == STATE_UNKNOWN
+    assert hass.states.get(f"{PREFIX}_daily_consumption").state == STATE_UNKNOWN
+
+    set_u32(mock_modbus_unit, 13036, 252070)
+    freezer.tick(SCAN_INTERVAL)
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+
+    assert hass.states.get(f"{PREFIX}_total_import").state == "25207.0"

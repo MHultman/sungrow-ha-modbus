@@ -10,6 +10,7 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.sungrow_modbus.const import (
+    CONF_BATTERY_MAX_POWER,
     CONF_CONNECTION,
     CONF_UNIT_ID,
     CONNECTION_LAN,
@@ -157,3 +158,28 @@ async def test_reconfigure_wrong_device(
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "wrong_device"
     assert init_integration.data == entry_data()
+
+
+async def test_options_flow(
+    hass: HomeAssistant, init_integration: MockConfigEntry
+) -> None:
+    """Test setting and clearing the battery power cap, which reloads the entry."""
+    number = "number.sungrow_sh8_0rt_v112_battery_max_charge_power"
+
+    result = await hass.config_entries.options.async_init(init_integration.entry_id)
+    assert result["type"] is FlowResultType.FORM
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {CONF_BATTERY_MAX_POWER: 5000}
+    )
+    await hass.async_block_till_done()
+
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert init_integration.options == {CONF_BATTERY_MAX_POWER: 5000}
+    assert hass.states.get(number).attributes["max"] == 5000
+
+    result = await hass.config_entries.options.async_init(init_integration.entry_id)
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {})
+    await hass.async_block_till_done()
+
+    assert init_integration.options == {}
+    assert hass.states.get(number).attributes["max"] == 10600

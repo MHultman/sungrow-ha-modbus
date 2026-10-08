@@ -8,7 +8,7 @@ integration exactly as an inverter would.
 from collections.abc import AsyncIterator, Generator
 from contextlib import asynccontextmanager
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import PropertyMock, patch
 
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
@@ -154,6 +154,17 @@ def set_u32(unit: MockModbusUnit, address: int, value: int) -> None:
 @pytest.fixture(autouse=True)
 def auto_enable_custom_integrations(enable_custom_integrations: None) -> None:
     """Let Home Assistant load the integration from custom_components."""
+
+
+@pytest.fixture
+def entity_registry_enabled_by_default() -> Generator[None]:
+    """Create entities that are disabled by default as enabled."""
+    with patch(
+        "homeassistant.helpers.entity.Entity.entity_registry_enabled_default",
+        return_value=True,
+        new_callable=PropertyMock,
+    ):
+        yield
 
 
 @pytest.fixture

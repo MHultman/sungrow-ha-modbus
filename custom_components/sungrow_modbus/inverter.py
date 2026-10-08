@@ -99,7 +99,14 @@ def _reading_blocks(model: InverterModel) -> tuple[Block, ...]:
 
 
 def _setting_blocks(model: InverterModel) -> tuple[Block, ...]:
-    """Return the settings blocks a model serves."""
+    """Return the settings blocks a model serves.
+
+    None for a model this integration does not know, which gets no controls.
+    The charge and discharge start powers are not documented by Sungrow and
+    have only been seen working on the RT models.
+    """
+    if not model.known:
+        return ()
     blocks = [
         EMS,
         SOC_LIMITS,
@@ -110,7 +117,7 @@ def _setting_blocks(model: InverterModel) -> tuple[Block, ...]:
         LOAD_ADJUSTMENT_MODE,
         LOAD_ADJUSTMENT_SWITCH,
     ]
-    if model.family is not Family.RS:
+    if model.family is Family.RT:
         blocks.append(BATTERY_START_POWER)
     return tuple(blocks)
 

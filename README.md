@@ -61,13 +61,23 @@ The setup form, entity names and states are in English and Swedish, following Ho
 | Export power limit (switch and number) | Limits export to the grid to the number's value, within the range the inverter reports. |
 | Backup mode (switch) | Keeps the backup output powered through a grid outage. |
 | Battery reserved SoC for backup (number) | Charge kept back for a grid outage. |
-| Battery charging start power / discharging start power (numbers) | The surplus or deficit that has to be reached before the battery starts charging or discharging. Not documented by Sungrow, and not on SH-RS models. |
+| Battery charging start power / discharging start power (numbers) | The surplus or deficit that has to be reached before the battery starts charging or discharging. Not documented by Sungrow, so only on the SH-RT models, where they have been seen working. |
 | Load adjustment mode (select) and Load adjustment (switch) | How the inverter drives a load from its DO relay. |
-| Start inverter / Stop inverter (buttons) | Starts or stops the inverter. |
+| Start inverter / Stop inverter (buttons) | Starts or stops the inverter. Disabled by default: enable them in the entity settings if you want them. |
 
 The less common ones (backup reserve, start powers, load adjustment, start/stop) are configuration entities, so they stay off auto-generated dashboards.
 
-A written value shows straight away. Settings are read back from the inverter every 60 seconds, so a change made in iSolarCloud shows within a minute.
+A written value shows straight away. Settings are read back from the inverter every 60 seconds, so a change made in iSolarCloud shows within a minute. If a write gets no answer, the settings are read back at once, since it may have landed anyway.
+
+Nothing is ever written unless you use a control: not at startup, not when Home Assistant restores its last states, not on a reconnect.
+
+### Capping the battery power
+
+Forced charge/discharge power and the battery max charge and discharge power go as high as the battery converter or inverter is rated for. To keep them lower, for example at what your battery's datasheet recommends, open **Settings → Devices & services → SunGrow Modbus → Configure** and set **Battery max power**. Leave it empty for no cap.
+
+### Models it does not know
+
+An inverter reporting a device type code that is not in the integration's model table is set up read-only: sensors only, no controls, and its settings are never read. Sungrow's SG string inverters answer the same identity registers, and the settings of an SH hybrid could mean something else on them. If yours is an SH hybrid, open an issue with its model name and the device type code from the log.
 
 The forced charge/discharge power is in watts. Sungrow's documentation gives percent for the RT models, but RT inverters have been seen to take watts.
 

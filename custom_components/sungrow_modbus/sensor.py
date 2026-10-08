@@ -92,6 +92,11 @@ def _three_phase(model: InverterModel) -> bool:
     return model.three_phase
 
 
+def _known(model: InverterModel) -> bool:
+    """Return whether the model's settings are read, which unknown ones' are not."""
+    return model.known
+
+
 def _mppt(count: int) -> Callable[[InverterModel], bool]:
     return lambda model: model.mppt_count >= count
 
@@ -324,6 +329,7 @@ def _battery_energy(
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=2,
+        exists_fn=_known,
         value_fn=value_fn,
     )
 
@@ -527,6 +533,7 @@ SENSORS: tuple[SungrowModbusSensorEntityDescription, ...] = (
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=1,
+        exists_fn=_known,
         value_fn=_battery_level_nominal,
     ),
     _battery_energy("battery_charge_nominal", _battery_charge_nominal),

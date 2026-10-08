@@ -97,6 +97,16 @@ class SungrowModbusEntity(CoordinatorEntity[SungrowModbusDataUpdateCoordinator])
         try:
             await self._runtime_data.inverter.async_write(register, value)
         except SungrowConnectionError as err:
+            # A write that got no answer may still have landed, so read back
+            # what the inverter holds rather than show the old value for a
+            # minute. Not awaited: the link is struggling, and the caller
+            # should hear about the failure now.
+            settings = self._runtime_data.settings
+            settings.config_entry.async_create_task(
+                self.hass,
+                settings.async_request_refresh(),
+                "re-read settings after an unanswered write",
+            )
             raise HomeAssistantError(
                 translation_domain=DOMAIN,
                 translation_key="communication_error",

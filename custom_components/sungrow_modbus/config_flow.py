@@ -4,8 +4,15 @@ from collections.abc import Mapping
 from typing import Any, override
 
 from homeassistant.components.modbus import async_get_temporary_unit
-from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
+from homeassistant.config_entries import (
+    ConfigEntry,
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlow,
+    OptionsFlowWithReload,
+)
 from homeassistant.const import CONF_HOST, CONF_PORT
+from homeassistant.core import callback
 from homeassistant.data_entry_flow import section
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.selector import (
@@ -20,6 +27,7 @@ from homeassistant.helpers.selector import (
 import probatio
 
 from .const import (
+    CONF_BATTERY_MAX_POWER,
     CONF_CONNECTION,
     CONF_UNIT_ID,
     CONNECTION_LAN,
@@ -92,10 +100,37 @@ def _sectioned(data: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+STEP_OPTIONS = probatio.Schema(
+    {
+        # Left empty, the battery power controls go as high as the hardware is
+        # rated for.
+        probatio.Optional(CONF_BATTERY_MAX_POWER): probatio.All(
+            NumberSelector(
+                NumberSelectorConfig(
+                    min=100,
+                    max=50000,
+                    step=100,
+                    mode=NumberSelectorMode.BOX,
+                    unit_of_measurement="W",
+                )
+            ),
+            probatio.Coerce(int),
+        ),
+    }
+)
+
+
 class SungrowModbusFlowHandler(ConfigFlow, domain=DOMAIN):
     """Handle a SunGrow Modbus config flow."""
 
     VERSION = 1
+
+    @staticmethod
+    @callback
+    @override
+    def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
+        """Return the options flow."""
+        return SungrowModbusOptionsFlow()
 
     @override
     async def async_step_user(
@@ -165,3 +200,21 @@ class SungrowModbusFlowHandler(ConfigFlow, domain=DOMAIN):
             return {"base": "no_sungrow_inverter"}, None
 
         return {}, inverter
+
+
+class SungrowModbusOptionsFlow(OptionsFlowWithReload):
+    """Handle the SunGrow Modbus options: the battery power cap."""
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Ask for the battery power cap; the entry reloads to apply it."""
+        if user_input is not None:
+            return self.async_create_entry(data=user_input)
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=self.add_suggested_values_to_schema(
+                STEP_OPTIONS, self.config_entry.options
+            ),
+        )

@@ -11,12 +11,18 @@ from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import entity_registry as er
-from modbus_connection import IllegalDataValueError, ModbusConnectionError
+from modbus_connection import (
+    IllegalDataValueError,
+    ModbusConnectionError,
+    ModbusTimeoutError,
+)
 from modbus_connection.mock import MockModbusUnit
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from .conftest import seed_inverter, seed_settings
+from custom_components.sungrow_modbus.const import CONF_BATTERY_MAX_POWER, DOMAIN
+
+from .conftest import SERIAL_NUMBER, entry_data, seed_inverter, seed_settings
 
 PREFIX = "number.sungrow_sh8_0rt_v112"
 
@@ -139,20 +145,75 @@ async def test_set_value_fails(
     assert hass.states.get(f"{PREFIX}_battery_min_soc").state == "5.0"
 
 
-async def test_no_start_power_on_rs(
+@pytest.mark.parametrize(
+    ("device_type_code", "prefix"),
+    [
+        (0x0D10, "number.sungrow_sh6_0rs"),
+        (0x0E20, "number.sungrow_sh5t"),
+        (0x0D0C, "number.sungrow_sh5k_30"),
+        (0x0D27, "number.sungrow_mg5rl"),
+    ],
+)
+async def test_start_power_only_on_rt(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_modbus_unit: MockModbusUnit,
     entity_registry: er.EntityRegistry,
+    device_type_code: int,
+    prefix: str,
 ) -> None:
-    """Test an SH-RS gets no start power settings, which it does not serve."""
-    seed_inverter(mock_modbus_unit, device_type_code=0x0D10)  # SH6.0RS
+    """Test the undocumented start powers are neither shown nor read off an RT."""
+    seed_inverter(mock_modbus_unit, device_type_code=device_type_code)
     seed_settings(mock_modbus_unit)
     mock_config_entry.add_to_hass(hass)
     await hass.config_entries.async_setup(mock_config_entry.entry_id)
     await hass.async_block_till_done()
 
-    prefix = "number.sungrow_sh6_0rs"
     assert entity_registry.async_get(f"{prefix}_battery_min_soc") is not None
     assert entity_registry.async_get(f"{prefix}_battery_charging_start_power") is None
     assert all(read.address != 33148 for read in mock_modbus_unit.read_events)
+
+
+async def test_battery_power_cap(
+    hass: HomeAssistant, mock_modbus_unit: MockModbusUnit
+) -> None:
+    """Test the cap from the options limits the three battery power controls."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        unique_id=SERIAL_NUMBER,
+        data=entry_data(),
+        options={CONF_BATTERY_MAX_POWER: 5000},
+    )
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    for key in (
+        "battery_forced_charge_discharge_power",
+        "battery_max_charge_power",
+        "battery_max_discharge_power",
+    ):
+        assert hass.states.get(f"{PREFIX}_{key}").attributes[ATTR_MAX] == 5000, key
+    # The export limit is not a battery power.
+    assert hass.states.get(f"{PREFIX}_export_power_limit").attributes[ATTR_MAX] == 10000
+
+    with pytest.raises(ServiceValidationError):
+        await _set_value(hass, f"{PREFIX}_battery_max_charge_power", 6000)
+    assert mock_modbus_unit.holding[33046] == 1060
+
+
+@pytest.mark.usefixtures("init_integration")
+async def test_unanswered_write_reads_back(
+    hass: HomeAssistant, mock_modbus_unit: MockModbusUnit
+) -> None:
+    """Test a write that timed out, but landed, shows what the inverter holds."""
+    mock_modbus_unit.fail_write(13058, ModbusTimeoutError("no answer"))
+    # The mock raises before storing anything, so the write landing anyway is
+    # played by hand.
+    mock_modbus_unit.holding[13058] = 150
+
+    with pytest.raises(HomeAssistantError):
+        await _set_value(hass, f"{PREFIX}_battery_min_soc", 15)
+    await hass.async_block_till_done()
+
+    assert hass.states.get(f"{PREFIX}_battery_min_soc").state == "15.0"

@@ -98,12 +98,24 @@ def test_register_outside_block() -> None:
 
 
 def test_unknown_model() -> None:
-    """Test a device type code nobody knows still gets a usable model."""
+    """Test a device type code nobody knows is read, but marked unknown."""
     model = inverter_model(0x0EFF)
 
-    assert model.name == "SH (0x0EFF)"
+    assert model.name == "Unknown (0x0EFF)"
+    assert not model.known
     assert model.mppt_count == 2
     assert model.three_phase
+
+
+async def test_unknown_model_reads_no_settings(
+    mock_modbus_unit: MockModbusUnit,
+) -> None:
+    """Test settings are never read from a model nobody knows."""
+    seed_inverter(mock_modbus_unit, device_type_code=0x0EFF)
+
+    inverter = await SungrowInverter.async_probe(mock_modbus_unit)
+
+    assert inverter.setting_blocks == ()
 
 
 async def test_probe(mock_modbus_unit: MockModbusUnit) -> None:

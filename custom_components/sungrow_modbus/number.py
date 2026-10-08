@@ -37,6 +37,8 @@ class SungrowModbusNumberEntityDescription(
     # Limits the inverter itself reports, where it does.
     min_fn: Callable[[SungrowInverter], float] | None = None
     max_fn: Callable[[SungrowInverter], float] | None = None
+    # Whether the battery power cap from the options applies.
+    battery_power: bool = False
 
 
 def _number(
@@ -116,7 +118,8 @@ def _rated_output(inverter: SungrowInverter) -> float:
 
 
 def _has_start_power(model: InverterModel) -> bool:
-    return model.family is not Family.RS
+    """Return whether a model has the undocumented start power settings."""
+    return model.family is Family.RT
 
 
 NUMBERS: tuple[SungrowModbusNumberEntityDescription, ...] = (
@@ -136,6 +139,7 @@ NUMBERS: tuple[SungrowModbusNumberEntityDescription, ...] = (
         reg.FORCED_CHARGE_DISCHARGE_POWER,
         native_min_value=0,
         max_fn=_power_ceiling(reg.FORCED_CHARGE_DISCHARGE_POWER),
+        battery_power=True,
     ),
     # Sungrow's minimum is 10 W; setting the discharge limit there is how to
     # keep the battery from discharging at all.
@@ -144,12 +148,14 @@ NUMBERS: tuple[SungrowModbusNumberEntityDescription, ...] = (
         reg.BATTERY_MAX_CHARGE_POWER,
         native_min_value=10,
         max_fn=_power_ceiling(reg.BATTERY_MAX_CHARGE_POWER),
+        battery_power=True,
     ),
     _power(
         "battery_max_discharge_power",
         reg.BATTERY_MAX_DISCHARGE_POWER,
         native_min_value=10,
         max_fn=_power_ceiling(reg.BATTERY_MAX_DISCHARGE_POWER),
+        battery_power=True,
     ),
     _power(
         "export_power_limit",
@@ -183,6 +189,8 @@ async def async_setup_entry(
 ) -> None:
     """Set up SunGrow Modbus number entities based on a config entry."""
     model = entry.runtime_data.inverter.identity.model
+    if not model.known:
+        return
 
     async_add_entities(
         SungrowModbusNumberEntity(entry=entry, description=description)
@@ -214,10 +222,17 @@ class SungrowModbusNumberEntity(SungrowModbusEntity, NumberEntity):
     @property
     @override
     def native_max_value(self) -> float:
-        """Return the highest value the setting takes."""
-        if (max_fn := self.entity_description.max_fn) is not None:
-            return max_fn(self.coordinator.inverter)
-        return super().native_max_value
+        """Return the highest value the setting takes.
+
+        For a battery power, never more than the cap set in the options.
+        """
+        if (max_fn := self.entity_description.max_fn) is None:
+            return super().native_max_value
+        ceiling = max_fn(self.coordinator.inverter)
+        cap = self._runtime_data.battery_max_power
+        if self.entity_description.battery_power and cap is not None:
+            return min(ceiling, cap)
+        return ceiling
 
     @override
     async def async_set_native_value(self, value: float) -> None:

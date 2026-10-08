@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.3.0 - 2026-10-08
+
+From a review for anything that could harm an inverter or its statistics.
+
+### Changed
+
+- An inverter with a device type code the integration does not know is set up read-only: sensors only, and its settings are never read. Sungrow's SG string inverters answer the same identity registers.
+- The charge and discharge start power controls, which Sungrow does not document, are only created on SH-RT models.
+- The Start inverter and Stop inverter buttons are disabled by default.
+- The energy counters treat their "not available" values (0xFFFF and 0xFFFFFFFF) as no reading, so one can never enter the long-term statistics.
+
+### Added
+
+- An optional battery max power in the integration's options, capping the forced charge/discharge power and the battery max charge and discharge power controls.
+- A write that gets no answer reads the settings back at once, since it may have landed anyway.
+
 ## 0.2.0 - 2026-10-08
 
 The first release. Not yet tested on real hardware: so far it has only run against a simulated SH8.0RT-V112. Check each control on your own system before you automate it.

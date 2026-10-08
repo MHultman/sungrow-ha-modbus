@@ -26,3 +26,7 @@ SCAN_INTERVAL: Final = timedelta(seconds=10)
 # Settings only move when something writes them, so they do not need a
 # measurement's cadence. A write here refreshes them straight away.
 SETTINGS_SCAN_INTERVAL: Final = timedelta(seconds=60)
+
+# An optional cap on the battery power controls, set in the options. mkaiser's
+# guide recommends a conservative limit for the battery's health.
+CONF_BATTERY_MAX_POWER: Final = "battery_max_power"

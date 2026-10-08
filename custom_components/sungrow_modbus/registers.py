@@ -131,11 +131,14 @@ SERIAL_NUMBER = Register(block=IDENTITY, address=4989, kind=Kind.STRING, length=
 DEVICE_TYPE_CODE = Register(block=IDENTITY, address=4999, kind=Kind.UINT16)
 RATED_OUTPUT_POWER = Register(block=IDENTITY, address=5000, kind=Kind.UINT16, scale=100)
 
+# Energy counters, here and in the system block, mark their "not available"
+# value: it would otherwise read as thousands of kWh, which long-term
+# statistics would count as real energy.
 DAILY_OUTPUT_ENERGY = Register(
-    block=INVERTER, address=5002, kind=Kind.UINT16, scale=0.1
+    block=INVERTER, address=5002, kind=Kind.UINT16, scale=0.1, invalid=0xFFFF
 )
 TOTAL_OUTPUT_ENERGY = Register(
-    block=INVERTER, address=5003, kind=Kind.UINT32, scale=0.1
+    block=INVERTER, address=5003, kind=Kind.UINT32, scale=0.1, invalid=0xFFFFFFFF
 )
 INVERTER_TEMPERATURE = Register(
     block=INVERTER, address=5007, kind=Kind.INT16, scale=0.1
@@ -222,26 +225,34 @@ METER_PHASE_C_CURRENT = Register(
 RUNNING_STATE = Register(block=SYSTEM, address=12999, kind=Kind.UINT16)
 # A bit field: PV generating, battery charging, and so on.
 POWER_FLOW_STATUS = Register(block=SYSTEM, address=13000, kind=Kind.UINT16)
-DAILY_PV_GENERATION = Register(block=SYSTEM, address=13001, kind=Kind.UINT16, scale=0.1)
-TOTAL_PV_GENERATION = Register(block=SYSTEM, address=13002, kind=Kind.UINT32, scale=0.1)
-DAILY_PV_EXPORT = Register(block=SYSTEM, address=13004, kind=Kind.UINT16, scale=0.1)
-TOTAL_PV_EXPORT = Register(block=SYSTEM, address=13005, kind=Kind.UINT32, scale=0.1)
+DAILY_PV_GENERATION = Register(
+    block=SYSTEM, address=13001, kind=Kind.UINT16, scale=0.1, invalid=0xFFFF
+)
+TOTAL_PV_GENERATION = Register(
+    block=SYSTEM, address=13002, kind=Kind.UINT32, scale=0.1, invalid=0xFFFFFFFF
+)
+DAILY_PV_EXPORT = Register(
+    block=SYSTEM, address=13004, kind=Kind.UINT16, scale=0.1, invalid=0xFFFF
+)
+TOTAL_PV_EXPORT = Register(
+    block=SYSTEM, address=13005, kind=Kind.UINT32, scale=0.1, invalid=0xFFFFFFFF
+)
 LOAD_POWER = Register(block=SYSTEM, address=13007, kind=Kind.INT32, invalid=0x7FFFFFFF)
 # Positive while exporting to the grid, negative while importing.
 EXPORT_POWER = Register(
     block=SYSTEM, address=13009, kind=Kind.INT32, invalid=0x7FFFFFFF
 )
 DAILY_BATTERY_CHARGE_FROM_PV = Register(
-    block=SYSTEM, address=13011, kind=Kind.UINT16, scale=0.1
+    block=SYSTEM, address=13011, kind=Kind.UINT16, scale=0.1, invalid=0xFFFF
 )
 TOTAL_BATTERY_CHARGE_FROM_PV = Register(
-    block=SYSTEM, address=13012, kind=Kind.UINT32, scale=0.1
+    block=SYSTEM, address=13012, kind=Kind.UINT32, scale=0.1, invalid=0xFFFFFFFF
 )
 DAILY_DIRECT_CONSUMPTION = Register(
-    block=SYSTEM, address=13016, kind=Kind.UINT16, scale=0.1
+    block=SYSTEM, address=13016, kind=Kind.UINT16, scale=0.1, invalid=0xFFFF
 )
 TOTAL_DIRECT_CONSUMPTION = Register(
-    block=SYSTEM, address=13017, kind=Kind.UINT32, scale=0.1
+    block=SYSTEM, address=13017, kind=Kind.UINT32, scale=0.1, invalid=0xFFFFFFFF
 )
 BATTERY_VOLTAGE = Register(block=SYSTEM, address=13019, kind=Kind.UINT16, scale=0.1)
 BATTERY_LEVEL = Register(block=SYSTEM, address=13022, kind=Kind.UINT16, scale=0.1)
@@ -250,25 +261,33 @@ BATTERY_STATE_OF_HEALTH = Register(
 )
 BATTERY_TEMPERATURE = Register(block=SYSTEM, address=13024, kind=Kind.INT16, scale=0.1)
 DAILY_BATTERY_DISCHARGE = Register(
-    block=SYSTEM, address=13025, kind=Kind.UINT16, scale=0.1
+    block=SYSTEM, address=13025, kind=Kind.UINT16, scale=0.1, invalid=0xFFFF
 )
 TOTAL_BATTERY_DISCHARGE = Register(
-    block=SYSTEM, address=13026, kind=Kind.UINT32, scale=0.1
+    block=SYSTEM, address=13026, kind=Kind.UINT32, scale=0.1, invalid=0xFFFFFFFF
 )
 PHASE_A_CURRENT = Register(block=SYSTEM, address=13030, kind=Kind.INT16, scale=0.1)
 PHASE_B_CURRENT = Register(block=SYSTEM, address=13031, kind=Kind.INT16, scale=0.1)
 PHASE_C_CURRENT = Register(block=SYSTEM, address=13032, kind=Kind.INT16, scale=0.1)
 TOTAL_ACTIVE_POWER = Register(block=SYSTEM, address=13033, kind=Kind.INT32)
-DAILY_IMPORT = Register(block=SYSTEM, address=13035, kind=Kind.UINT16, scale=0.1)
-TOTAL_IMPORT = Register(block=SYSTEM, address=13036, kind=Kind.UINT32, scale=0.1)
+DAILY_IMPORT = Register(
+    block=SYSTEM, address=13035, kind=Kind.UINT16, scale=0.1, invalid=0xFFFF
+)
+TOTAL_IMPORT = Register(
+    block=SYSTEM, address=13036, kind=Kind.UINT32, scale=0.1, invalid=0xFFFFFFFF
+)
 DAILY_BATTERY_CHARGE = Register(
-    block=SYSTEM, address=13039, kind=Kind.UINT16, scale=0.1
+    block=SYSTEM, address=13039, kind=Kind.UINT16, scale=0.1, invalid=0xFFFF
 )
 TOTAL_BATTERY_CHARGE = Register(
-    block=SYSTEM, address=13040, kind=Kind.UINT32, scale=0.1
+    block=SYSTEM, address=13040, kind=Kind.UINT32, scale=0.1, invalid=0xFFFFFFFF
 )
-DAILY_EXPORT = Register(block=SYSTEM, address=13044, kind=Kind.UINT16, scale=0.1)
-TOTAL_EXPORT = Register(block=SYSTEM, address=13045, kind=Kind.UINT32, scale=0.1)
+DAILY_EXPORT = Register(
+    block=SYSTEM, address=13044, kind=Kind.UINT16, scale=0.1, invalid=0xFFFF
+)
+TOTAL_EXPORT = Register(
+    block=SYSTEM, address=13045, kind=Kind.UINT32, scale=0.1, invalid=0xFFFFFFFF
+)
 
 # Settings. Each block covers only registers Sungrow documents (or the
 # community has reverse engineered), with no gaps, since an undocumented
@@ -294,7 +313,7 @@ BACKUP_RESERVE = Block(name="backup_reserve", space=Space.HOLDING, start=13099, 
 BATTERY_POWER_LIMITS = Block(
     name="battery_power_limits", space=Space.HOLDING, start=33046, count=2
 )
-# Not documented by Sungrow, and not served by the SH-RS models.
+# Not documented by Sungrow, and only seen working on the SH-RT models.
 BATTERY_START_POWER = Block(
     name="battery_start_power", space=Space.HOLDING, start=33148, count=2
 )

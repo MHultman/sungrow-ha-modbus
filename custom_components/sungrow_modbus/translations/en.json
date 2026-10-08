@@ -463,6 +463,19 @@
       "message": "A different inverter now answers at this address. Reconfigure the entry to point it at the right one."
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "battery_max_power": "Battery max power"
+        },
+        "data_description": {
+          "battery_max_power": "Caps the forced charge/discharge power and the battery max charge and discharge power controls, for example at what the battery maker recommends. Leave empty to allow up to what the inverter is rated for."
+        },
+        "title": "Options"
+      }
+    }
+  },
   "selector": {
     "connection": {
       "options": {

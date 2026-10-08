@@ -96,6 +96,8 @@ class SungrowModbusRuntimeData:
     readings: SungrowModbusDataUpdateCoordinator
     settings: SungrowModbusDataUpdateCoordinator
     device_info: DeviceInfo
+    # The most the battery power controls go to, if the user set one.
+    battery_max_power: int | None = None
 
     @property
     def inverter(self) -> SungrowInverter:
