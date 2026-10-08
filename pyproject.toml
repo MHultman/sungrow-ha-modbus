@@ -1,5 +1,5 @@
 [project]
-name = "sungrow-modbus"
+name = "sungrow-ha-modbus"
 version = "0.1.0"
 description = "Home Assistant integration for Sungrow SH hybrid inverters over Modbus"
 requires-python = ">=3.14.2"

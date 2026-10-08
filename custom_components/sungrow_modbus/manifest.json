@@ -4,10 +4,10 @@
   "codeowners": ["@MHultman"],
   "config_flow": true,
   "dependencies": ["modbus"],
-  "documentation": "https://github.com/MHultman/sungrow-modbus",
+  "documentation": "https://github.com/MHultman/sungrow-ha-modbus",
   "integration_type": "device",
   "iot_class": "local_polling",
-  "issue_tracker": "https://github.com/MHultman/sungrow-modbus/issues",
+  "issue_tracker": "https://github.com/MHultman/sungrow-ha-modbus/issues",
   "loggers": ["modbus_connection", "tmodbus"],
   "requirements": [],
   "version": "0.1.0"

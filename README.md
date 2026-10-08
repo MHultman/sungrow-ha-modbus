@@ -16,7 +16,7 @@ The register map comes from mkaiser's [Sungrow-SHx-Inverter-Modbus-Home-Assistan
 ## Installation
 
 1. In HACS, open the menu (⋮) → **Custom repositories**.
-2. Add `https://github.com/MHultman/sungrow-modbus` with type **Integration**.
+2. Add `https://github.com/MHultman/sungrow-ha-modbus` with type **Integration**.
 3. Install **SunGrow Modbus** and restart Home Assistant.
 4. Go to **Settings → Devices & services → Add integration** and pick **SunGrow Modbus**.
 5. Enter the IP address of the WiNet-S dongle or the inverter, and pick how it is connected.
@@ -63,7 +63,7 @@ Every 10 seconds, in blocks of up to 48 registers at a time rather than one requ
 
 ## Troubleshooting
 
-Download the diagnostics from the device page. They contain the raw register values of every block, with the host and serial number removed, which is what it takes to work out a value a model reports differently. Attach them to an [issue](https://github.com/MHultman/sungrow-modbus/issues).
+Download the diagnostics from the device page. They contain the raw register values of every block, with the host and serial number removed, which is what it takes to work out a value a model reports differently. Attach them to an [issue](https://github.com/MHultman/sungrow-ha-modbus/issues).
 
 ## Development
 
