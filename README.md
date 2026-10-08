@@ -46,7 +46,7 @@ One device for the inverter, named after the model it reports, such as "Sungrow 
 
 - **Sensors**: running state, PV per MPPT, AC per phase, grid, house load, battery, backup output, smart meter values (disabled by default), daily and lifetime energy counters, and the battery level and charge relative to the SoC limits.
 - **Binary sensors**: PV generating, battery charging and discharging, exporting and importing, from the inverter's power flow status.
-- **Controls**: see [Controls](docs/controls.md).
+- **Controls**: an **Operating mode** select (self-consumption, without discharging, battery bypass, forced charge, forced discharge) and an **Export mode** select (no limit, zero export, limited) that set everything in one pick, plus the separate settings behind them; see [Controls](docs/controls.md).
 
 Entities a model does not have are not created; see [Models and entities](docs/models-and-entities.md). An inverter the integration does not recognise is set up read-only, with no controls.
 

@@ -122,6 +122,24 @@
       }
     },
     "select": {
+      "operating_mode": {
+        "name": "Driftläge",
+        "state": {
+          "self_consumption": "Egenförbrukning",
+          "self_consumption_no_discharge": "Egenförbrukning utan urladdning",
+          "battery_bypass": "Batteriet förbikopplat",
+          "forced_charge": "Forcerad laddning",
+          "forced_discharge": "Forcerad urladdning"
+        }
+      },
+      "export_mode": {
+        "name": "Exportläge",
+        "state": {
+          "no_limit": "Ingen begränsning",
+          "zero_export": "Nollexport",
+          "limited": "Begränsad"
+        }
+      },
       "ems_mode": {
         "name": "EMS-läge",
         "state": {

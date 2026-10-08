@@ -122,6 +122,24 @@
       }
     },
     "select": {
+      "operating_mode": {
+        "name": "Operating mode",
+        "state": {
+          "self_consumption": "Self-consumption",
+          "self_consumption_no_discharge": "Self-consumption without discharging",
+          "battery_bypass": "Battery bypass",
+          "forced_charge": "Forced charge",
+          "forced_discharge": "Forced discharge"
+        }
+      },
+      "export_mode": {
+        "name": "Export mode",
+        "state": {
+          "no_limit": "No limit",
+          "zero_export": "Zero export",
+          "limited": "Limited"
+        }
+      },
       "ems_mode": {
         "name": "EMS mode",
         "state": {

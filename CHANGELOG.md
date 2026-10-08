@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- An **Operating mode** select: Self-consumption, Self-consumption without discharging, Battery bypass, Forced charge and Forced discharge, each setting the EMS mode, the forced command and the discharge limit in one pick. It shows the mode the inverter's settings match.
+- An **Export mode** select: No limit, Zero export and Limited.
+- Both remember the discharge limit and the export limit they set to 10 W and 0 W, across restarts, and write them back when leaving that option.
+
+### Changed
+
+- The EMS mode and battery forced charge/discharge selects are configuration entities: still on the device page, but off auto-generated dashboards.
+
 ## 0.3.1 - 2026-10-08
 
 ### Changed

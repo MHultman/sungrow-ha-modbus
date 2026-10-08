@@ -17,14 +17,12 @@ from . import registers as reg
 from .coordinator import SungrowModbusConfigEntry
 from .entity import SungrowModbusEntity, SungrowModbusEntityDescription
 from .inverter import SungrowInverter
+from .limits import battery_power_ceiling, capped, rated_output, reported
 from .models import Family, InverterModel
 from .registers import Register
 
 # Writes go one at a time over the shared link anyway.
 PARALLEL_UPDATES = 1
-
-# For an inverter that reports no rating at all, which none should.
-FALLBACK_POWER_CEILING = 10_000
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -79,44 +77,6 @@ def _power(
     )
 
 
-def _power_ceiling(register: Register) -> Callable[[SungrowInverter], float]:
-    """Return the most a battery power setting can sensibly be set to.
-
-    That is what the battery converter or the inverter is rated for, unless
-    the setting already holds more: some inverters ship with a charge limit
-    above their converter's rating, and the control has to be able to show it.
-    """
-
-    def ceiling(inverter: SungrowInverter) -> float:
-        candidates = (
-            inverter.value(reg.BDC_RATED_POWER),
-            inverter.identity.rated_output_power,
-            inverter.value(register),
-        )
-        return max(
-            (value for value in candidates if isinstance(value, (int, float))),
-            default=FALLBACK_POWER_CEILING,
-        )
-
-    return ceiling
-
-
-def _reported(
-    register: Register, fallback: Callable[[SungrowInverter], float]
-) -> Callable[[SungrowInverter], float]:
-    """Return a limit the inverter reports, or a fallback while it has none."""
-
-    def limit(inverter: SungrowInverter) -> float:
-        value = inverter.value(register)
-        return value if isinstance(value, (int, float)) else fallback(inverter)
-
-    return limit
-
-
-def _rated_output(inverter: SungrowInverter) -> float:
-    return inverter.identity.rated_output_power or FALLBACK_POWER_CEILING
-
-
 def _has_start_power(model: InverterModel) -> bool:
     """Return whether a model has the undocumented start power settings."""
     return model.family is Family.RT
@@ -138,7 +98,7 @@ NUMBERS: tuple[SungrowModbusNumberEntityDescription, ...] = (
         "forced_charge_discharge_power",
         reg.FORCED_CHARGE_DISCHARGE_POWER,
         native_min_value=0,
-        max_fn=_power_ceiling(reg.FORCED_CHARGE_DISCHARGE_POWER),
+        max_fn=battery_power_ceiling(reg.FORCED_CHARGE_DISCHARGE_POWER),
         battery_power=True,
     ),
     # Sungrow's minimum is 10 W; setting the discharge limit there is how to
@@ -147,21 +107,21 @@ NUMBERS: tuple[SungrowModbusNumberEntityDescription, ...] = (
         "battery_max_charge_power",
         reg.BATTERY_MAX_CHARGE_POWER,
         native_min_value=10,
-        max_fn=_power_ceiling(reg.BATTERY_MAX_CHARGE_POWER),
+        max_fn=battery_power_ceiling(reg.BATTERY_MAX_CHARGE_POWER),
         battery_power=True,
     ),
     _power(
         "battery_max_discharge_power",
         reg.BATTERY_MAX_DISCHARGE_POWER,
         native_min_value=10,
-        max_fn=_power_ceiling(reg.BATTERY_MAX_DISCHARGE_POWER),
+        max_fn=battery_power_ceiling(reg.BATTERY_MAX_DISCHARGE_POWER),
         battery_power=True,
     ),
     _power(
         "export_power_limit",
         reg.EXPORT_POWER_LIMIT,
-        min_fn=_reported(reg.EXPORT_POWER_LIMIT_MIN, lambda _: 0),
-        max_fn=_reported(reg.EXPORT_POWER_LIMIT_MAX, _rated_output),
+        min_fn=reported(reg.EXPORT_POWER_LIMIT_MIN, lambda _: 0),
+        max_fn=reported(reg.EXPORT_POWER_LIMIT_MAX, rated_output),
     ),
     _power(
         "battery_charging_start_power",
@@ -229,9 +189,8 @@ class SungrowModbusNumberEntity(SungrowModbusEntity, NumberEntity):
         if (max_fn := self.entity_description.max_fn) is None:
             return super().native_max_value
         ceiling = max_fn(self.coordinator.inverter)
-        cap = self._runtime_data.battery_max_power
-        if self.entity_description.battery_power and cap is not None:
-            return min(ceiling, cap)
+        if self.entity_description.battery_power:
+            return capped(ceiling, self._runtime_data.battery_max_power)
         return ceiling
 
     @override

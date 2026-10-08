@@ -31,7 +31,7 @@ FAMILIES = (Family.K, Family.RS, Family.RT, Family.T, Family.MG)
 PLATFORMS: tuple[tuple[str, str, Iterable[SungrowModbusEntityDescription]], ...] = (
     ("sensor", "Sensors", sensor.SENSORS),
     ("binary_sensor", "Binary sensors", binary_sensor.BINARY_SENSORS),
-    ("select", "Selects", select.SELECTS),
+    ("select", "Selects", (*select.PRESET_SELECTS, *select.SELECTS)),
     ("number", "Numbers", number.NUMBERS),
     ("switch", "Switches", switch.SWITCHES),
     ("button", "Buttons", button.BUTTONS),

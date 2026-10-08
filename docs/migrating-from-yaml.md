@@ -8,7 +8,7 @@ How to move from mkaiser's [Sungrow-SHx-Inverter-Modbus-Home-Assistant](https://
 2. **Turn off the YAML package.** Remove the `modbus_sungrow` line from `packages:` in `configuration.yaml` (or comment out the `modbus:` section of `modbus_sungrow.yaml`), check the configuration, and restart Home Assistant.
 3. **Add this integration**: see [Installation](../README.md#installation). Pick **WiNet-S dongle** or **the inverter's own LAN port** to match what the YAML's `host` pointed at. The YAML's `sungrow_modbus_wait_milliseconds`, `delay` and `timeout` are not needed: the connection choice sets them.
 4. **Carry over the battery power limit.** If you set `sungrow_modbus_battery_max_power` in `secrets.yaml`, set the same value as **Battery max power** under **Configure**. See [Capping the battery power](controls.md#capping-the-battery-power).
-5. **Point everything at the new entities**: the [Energy dashboard](energy-dashboard.md), automations, scripts, scenes and dashboards. The YAML package's scenes have equivalents in [Controls](controls.md#doing-what-the-yaml-packages-scenes-did).
+5. **Point everything at the new entities**: the [Energy dashboard](energy-dashboard.md), automations, scripts, scenes and dashboards. The YAML package's scenes are options of the **Operating mode** and **Export mode** selects; see [Controls](controls.md#operating-mode-and-export-mode).
 6. **Clean up the old entities.** Go to **Settings → Devices & services → Entities**, filter on status *Unavailable* and integration *Modbus* (and *Template* for the YAML's template sensors), select them, and delete them. Their long-term statistics stay until you remove those under **Developer tools → Statistics**.
 
 Long-term statistics are not joined: the new entities start their history from the day you switch.
@@ -147,5 +147,5 @@ Two differ in more than their name:
 | `sensor.daily_consumed_energy_filtered` | Home Assistant's **Filter** or **Statistics** helper. |
 | `switch.sungrow_dashboard_enable_danger_mode` and its automation | None; see [Controls](controls.md#left-out-on-purpose). |
 | Active power limitation and APL shutdown at zero | Left out; see [Controls](controls.md#left-out-on-purpose). |
-| The scenes | Your own scenes; see [Controls](controls.md#doing-what-the-yaml-packages-scenes-did). |
+| The scenes | The **Operating mode** and **Export mode** selects; see [Controls](controls.md#operating-mode-and-export-mode). |
 | The multiple-inverter YAML files | Add the integration once per inverter; see [More than one inverter](connecting.md#more-than-one-inverter). |
