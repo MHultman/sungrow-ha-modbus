@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.4.0 - 2026-10-08
 
 ### Added
 
@@ -11,6 +11,7 @@
 ### Changed
 
 - The EMS mode and battery forced charge/discharge selects are configuration entities: still on the device page, but off auto-generated dashboards.
+- The README no longer compares the integration with other ones or points to the YAML package; the migration guide is still linked from the docs.
 
 ## 0.3.1 - 2026-10-08
 
