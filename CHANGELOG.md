@@ -1,10 +1,14 @@
 # Changelog
 
-## Unreleased
+## 0.6.3 - 2026-10-08
 
 ### Added
 
 - A brand icon, with a variant for dark themes, shown on the integration's page in Home Assistant. Home Assistant serves it from the integration itself; the HACS store may still show a placeholder.
+
+### Fixed
+
+- The [model report](https://github.com/MHultman/sungrow-ha-modbus/issues/new?template=model_report.yml) form opened as a blank issue: GitHub rejected it over a dropdown option it reserves. It now opens as the form.
 
 ## 0.6.2 - 2026-10-08
 
