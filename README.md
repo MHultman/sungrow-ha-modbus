@@ -2,9 +2,7 @@
 
 A Home Assistant integration for Sungrow SH hybrid inverters (SH-RT, SH-T, SH-RS, SH-K and MG models) over Modbus TCP, through the inverter's own LAN port or a WiNet-S dongle. It reads the inverter's PV, battery, grid and energy values, and controls its battery and grid settings: EMS mode, forced charge and discharge, SoC limits, battery power limits, export limit and backup mode.
 
-It works the way Home Assistant's built-in [SolarEdge Modbus](https://www.home-assistant.io/integrations/solaredge_modbus) integration does: it is set up from the UI, and it does not open its own Modbus connection. It borrows one from Home Assistant's `modbus` integration, which keeps a single shared connection per device. There is no YAML to copy, no secrets file and no template sensors.
-
-The register map comes from mkaiser's [Sungrow-SHx-Inverter-Modbus-Home-Assistant](https://github.com/mkaiser/Sungrow-SHx-Inverter-Modbus-Home-Assistant) YAML package (see [NOTICE](NOTICE)).
+It is set up from the UI, and it does not open its own Modbus connection: it borrows one from Home Assistant's `modbus` integration, which keeps a single shared connection per device.
 
 > **Status: early. Tested only on the author's own inverter**, an SH8.0RT-V112 connected through a WiNet-S. It may behave differently on yours. Settings changed here change how your battery and grid connection behave, so check each control on your own system before you automate it.
 
@@ -21,7 +19,6 @@ It is not affiliated with, endorsed by or supported by Sungrow. See also the [li
 - [Connecting the inverter](docs/connecting.md): LAN port or WiNet-S, enabling the LAN port, one client at a time, several inverters
 - [Controls](docs/controls.md): what each control does, the EMS modes, capping the battery power
 - [Energy dashboard](docs/energy-dashboard.md): which sensor goes where
-- [Migrating from the YAML package](docs/migrating-from-yaml.md): steps, and which old entity becomes which new one
 - [Troubleshooting](docs/troubleshooting.md): connection problems, unavailable entities, diagnostics, logs
 - [Changelog](CHANGELOG.md)
 
@@ -29,7 +26,7 @@ It is not affiliated with, endorsed by or supported by Sungrow. See also the [li
 
 - Home Assistant **2026.10** or newer, which has the shared Modbus connection API this integration uses.
 - A Sungrow SH hybrid inverter reachable over Modbus TCP, usually on port 502 with device ID 1. The inverter's own LAN port works better than a WiNet-S.
-- Nothing else connected to the inverter over Modbus: it usually accepts one client at a time. If you use mkaiser's YAML package, see [Migrating](docs/migrating-from-yaml.md) first.
+- Nothing else connected to the inverter over Modbus: it usually accepts one client at a time.
 
 ## Installation
 
