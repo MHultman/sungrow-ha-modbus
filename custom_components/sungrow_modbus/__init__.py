@@ -33,6 +33,7 @@ from .coordinator import (
 from .entity import inverter_device_info
 from .helpers import apply_link_timing, create_modbus_params
 from .inverter import SungrowConnectionError, SungrowError, SungrowInverter
+from .issues import RefusedBlocks, async_clear_issues, async_raise_unknown_model
 from .services import async_setup_services
 
 PLATFORMS = [
@@ -102,13 +103,16 @@ async def async_setup_entry(
             entry.title,
             model.name,
         )
+    async_raise_unknown_model(hass, entry, inverter.identity)
 
+    refused = RefusedBlocks(hass, entry)
     readings = SungrowModbusDataUpdateCoordinator(
         hass,
         entry,
         inverter,
         blocks=inverter.reading_blocks,
         interval=SCAN_INTERVAL,
+        refused=refused,
     )
     settings = SungrowModbusDataUpdateCoordinator(
         hass,
@@ -116,6 +120,7 @@ async def async_setup_entry(
         inverter,
         blocks=inverter.setting_blocks,
         interval=SETTINGS_SCAN_INTERVAL,
+        refused=refused,
     )
 
     await readings.async_config_entry_first_refresh()
@@ -137,5 +142,7 @@ async def async_setup_entry(
 async def async_unload_entry(
     hass: HomeAssistant, entry: SungrowModbusConfigEntry
 ) -> bool:
-    """Unload a SunGrow Modbus config entry."""
-    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    """Unload a SunGrow Modbus config entry, and take back its issues."""
+    if unloaded := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
+        async_clear_issues(hass, entry)
+    return unloaded

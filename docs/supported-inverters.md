@@ -33,9 +33,9 @@ Some values are only valid in some setups:
 
 ## Models it does not know
 
-An inverter whose device type code is not in the model table is set up **read-only**: the sensors and binary sensors an SH-RT gets, no controls, and its settings are never read or written. Sungrow's SG string inverters (the ones without a battery) answer the same identity registers, and an SH hybrid's settings could mean something else on them. Home Assistant's log says when this happens.
+An inverter whose device type code is not in the model table is set up **read-only**: the sensors and binary sensors an SH-RT gets, no controls, and its settings are never read or written. Sungrow's SG string inverters (the ones without a battery) answer the same identity registers, and an SH hybrid's settings could mean something else on them. A repair notice under **Settings → System → Repairs** says when this happens, with the code.
 
-If yours is an SH hybrid that shows up as "Unknown (0x…)", open an [issue](https://github.com/MHultman/sungrow-ha-modbus/issues) with its model name and the code from the log.
+If yours is an SH hybrid that shows up as "Unknown (0x…)", open an [issue](https://github.com/MHultman/sungrow-ha-modbus/issues) with its model name and that code.
 
 ## Not supported
 

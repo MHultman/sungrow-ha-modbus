@@ -538,5 +538,15 @@
         }
       }
     }
+  },
+  "issues": {
+    "refused_registers": {
+      "title": "{inverter} svarar inte på vissa register",
+      "description": "Växelriktaren har vägrat svara för de här registren vid varje avläsning i rad: {blocks}. Entiteterna som läses från dem förblir otillgängliga.\n\nOftast har modellen eller dess firmware inte dem. Du kan inaktivera de entiteterna eller ignorera det här. Om din växelriktare borde ha dem, öppna ett ärende på GitHub och bifoga diagnostiken."
+    },
+    "unknown_model": {
+      "title": "{inverter} är konfigurerad som skrivskyddad",
+      "description": "Växelriktaren rapporterar enhetstypkoden {code}, som den här integrationen inte känner till, så den läser bara av mätvärden och har inga kontroller.\n\nOm det är en Sungrow SH hybridväxelriktare, öppna ett ärende på GitHub med modellnamnet och koden, så att den kan läggas till."
+    }
   }
 }

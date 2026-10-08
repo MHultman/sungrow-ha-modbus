@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Repair notices under **Settings → System → Repairs**: for an inverter set up read-only because its model is not known, and for registers the inverter refuses 5 polls in a row. Each goes away by itself once it no longer applies.
+- Icons for the selects, switches, buttons and the sensors without a device class. The Operating mode and Export mode icons follow the option picked.
+- [Removing the integration](https://github.com/MHultman/sungrow-ha-modbus#removing-the-integration) in the README.
+
 ## 0.5.0 - 2026-10-08
 
 ### Added

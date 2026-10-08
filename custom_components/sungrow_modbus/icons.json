@@ -1,4 +1,94 @@
 {
+  "entity": {
+    "binary_sensor": {
+      "battery_discharging": {
+        "default": "mdi:battery",
+        "state": {
+          "on": "mdi:battery-arrow-down"
+        }
+      },
+      "exporting": {
+        "default": "mdi:transmission-tower",
+        "state": {
+          "on": "mdi:transmission-tower-export"
+        }
+      },
+      "importing": {
+        "default": "mdi:transmission-tower",
+        "state": {
+          "on": "mdi:transmission-tower-import"
+        }
+      },
+      "negative_load_power": {
+        "default": "mdi:home-export-outline"
+      },
+      "positive_load_power": {
+        "default": "mdi:home-lightning-bolt"
+      }
+    },
+    "button": {
+      "start_inverter": {
+        "default": "mdi:play"
+      },
+      "stop_inverter": {
+        "default": "mdi:stop"
+      }
+    },
+    "select": {
+      "operating_mode": {
+        "default": "mdi:home-battery",
+        "state": {
+          "self_consumption": "mdi:home-battery",
+          "self_consumption_no_discharge": "mdi:battery-lock",
+          "battery_bypass": "mdi:battery-off-outline",
+          "forced_charge": "mdi:battery-charging",
+          "forced_discharge": "mdi:battery-arrow-down"
+        }
+      },
+      "export_mode": {
+        "default": "mdi:transmission-tower-export",
+        "state": {
+          "no_limit": "mdi:transmission-tower-export",
+          "zero_export": "mdi:transmission-tower-off",
+          "limited": "mdi:transmission-tower"
+        }
+      },
+      "ems_mode": {
+        "default": "mdi:cog"
+      },
+      "forced_charge_discharge": {
+        "default": "mdi:battery-sync"
+      },
+      "load_adjustment_mode": {
+        "default": "mdi:clock-outline"
+      }
+    },
+    "sensor": {
+      "battery_state_of_health": {
+        "default": "mdi:battery-heart-variant"
+      },
+      "running_state": {
+        "default": "mdi:solar-power-variant"
+      }
+    },
+    "switch": {
+      "backup_mode": {
+        "default": "mdi:home-battery-outline",
+        "state": {
+          "on": "mdi:home-battery"
+        }
+      },
+      "export_power_limit": {
+        "default": "mdi:transmission-tower-export",
+        "state": {
+          "on": "mdi:transmission-tower"
+        }
+      },
+      "load_adjustment": {
+        "default": "mdi:power-socket-eu"
+      }
+    }
+  },
   "services": {
     "force_battery": {
       "service": "mdi:battery-clock"

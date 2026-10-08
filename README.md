@@ -54,11 +54,21 @@ Entities a model does not have are not created; see [Models and entities](docs/m
 
 The setup form, entity names and states are in English and Swedish, following Home Assistant's language setting.
 
+An inverter set up read-only, and registers the inverter keeps refusing, show up as repair notices under **Settings → System → Repairs**.
+
 ## How it works
 
 Measurements are read every 10 seconds and settings every 60, in blocks of registers rather than one request per value. A block the inverter refuses makes only its own entities unavailable. If one request goes unanswered, which the WiNet-S does now and then, the poll is retried once before the entities go unavailable.
 
 Nothing is ever written to the inverter unless you use a control.
+
+## Removing the integration
+
+1. **Leave the inverter in the state you want it in.** Removing the integration changes nothing on the inverter: it keeps the settings last written to it. Set **Operating mode** to Self-consumption, and **Export mode** to what your grid connection allows. A running **Force battery** does not end once the integration is gone.
+2. Go to **Settings → Devices & services → SunGrow Modbus**, open the menu (⋮) on the entry and pick **Delete**.
+3. In HACS, open **SunGrow Modbus**, pick **Remove** from its menu, and restart Home Assistant.
+
+The entities' history and long-term statistics stay until Home Assistant purges them, or you remove them under **Developer tools → Statistics**.
 
 ## Development
 

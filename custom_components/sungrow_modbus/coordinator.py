@@ -11,6 +11,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .const import DOMAIN, LOGGER
 from .inverter import PollReport, SungrowConnectionError, SungrowInverter
+from .issues import RefusedBlocks
 from .registers import Block
 
 if TYPE_CHECKING:
@@ -37,10 +38,12 @@ class SungrowModbusDataUpdateCoordinator(DataUpdateCoordinator[PollReport]):
         *,
         blocks: tuple[Block, ...],
         interval: timedelta,
+        refused: RefusedBlocks,
     ) -> None:
         """Initialize the coordinator."""
         self.inverter = inverter
         self.blocks = blocks
+        self._refused = refused
         self._silent: set[str] = set()
         super().__init__(
             hass,
@@ -63,6 +66,7 @@ class SungrowModbusDataUpdateCoordinator(DataUpdateCoordinator[PollReport]):
             ) from err
 
         self._log_silence(report)
+        self._refused.record(report)
         return report
 
     async def _async_poll_with_retry(self) -> PollReport:

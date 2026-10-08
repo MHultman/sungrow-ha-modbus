@@ -538,5 +538,15 @@
         }
       }
     }
+  },
+  "issues": {
+    "refused_registers": {
+      "title": "{inverter} does not serve some registers",
+      "description": "The inverter has refused to answer for these registers on every poll in a row: {blocks}. The entities read from them stay unavailable.\n\nUsually the model or its firmware does not have them. You can disable those entities, or ignore this. If your inverter should have them, open an issue on GitHub with the diagnostics attached."
+    },
+    "unknown_model": {
+      "title": "{inverter} is set up read-only",
+      "description": "The inverter reports device type code {code}, which this integration does not know, so it only reads its measurements and has no controls.\n\nIf it is a Sungrow SH hybrid inverter, open an issue on GitHub with its model name and this code, so it can be added."
+    }
   }
 }
