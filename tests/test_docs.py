@@ -1,5 +1,6 @@
 """Tests that the documentation matches the integration."""
 
+import json
 import re
 
 import yaml
@@ -40,3 +41,16 @@ def test_model_report_follows_the_checklist() -> None:
     assert [
         option["label"].split(":")[0] for option in worked["attributes"]["options"]
     ] == [f"{number}. {title}" for number, title in sections]
+
+
+def test_issue_template_labels_exist() -> None:
+    """Test every label an issue form applies is one the Labels workflow creates.
+
+    GitHub leaves out a label that does not exist.
+    """
+    labels = {
+        label["name"]
+        for label in json.loads((ROOT / ".github" / "labels.json").read_text())
+    }
+    for template in (ROOT / ".github" / "ISSUE_TEMPLATE").glob("*.yml"):
+        assert set(yaml.safe_load(template.read_text())["labels"]) <= labels
