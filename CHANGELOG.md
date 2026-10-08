@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.1 - 2026-10-08
+
+### Changed
+
+- The README, the documentation and the setup form say the integration has only been tested on the author's own inverter, and that it is used at your own risk: the author takes no responsibility for anything it is used for.
+
 ## 0.3.0 - 2026-10-08
 
 From a review for anything that could harm an inverter or its statistics.

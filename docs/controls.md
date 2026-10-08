@@ -2,7 +2,7 @@
 
 The controls change how your inverter runs the battery and the grid connection. They write the same registers, with the same values, as mkaiser's YAML package. Nothing is ever written unless you use one: not at startup, not when Home Assistant restores its last states, not on a reconnect.
 
-> Changing these settings changes how your battery charges and discharges and what goes to the grid. Check each one on your own system before you automate it.
+> Changing these settings changes how your battery charges and discharges and what goes to the grid. Check each one on your own system before you automate it. The controls have only been tested on the author's own inverter, and you use them at your own risk; see [Use at your own risk](../README.md#use-at-your-own-risk).
 
 ## What there is
 

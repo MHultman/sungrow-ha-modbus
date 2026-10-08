@@ -45,7 +45,7 @@
           "host": "The IP address or host name of the WiNet-S dongle or the inverter's LAN port.",
           "port": "The Modbus TCP port. Sungrow uses 502."
         },
-        "description": "Connect to a Sungrow SH hybrid inverter over Modbus TCP. Connecting through a WiNet-S takes about 15 seconds.",
+        "description": "Connect to a Sungrow SH hybrid inverter over Modbus TCP. Connecting through a WiNet-S takes about 15 seconds. Use at your own risk: the author takes no responsibility for anything this integration is used for.",
         "sections": {
           "more_options": {
             "data": {

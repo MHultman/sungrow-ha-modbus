@@ -2,7 +2,7 @@
 
 The integration is for Sungrow's **SH hybrid inverters**: the ones with a battery input. It reads which model it is talking to from the inverter's device type code and only creates the entities that model has. The full list of models, and which entity each family gets, is in [Models and entities](models-and-entities.md).
 
-> **Tested so far:** only against a simulated SH8.0RT-V112. The register map is the one mkaiser's YAML package has used for years, mainly on an SH10RT over its LAN port, with SH-RS, SH-RT-V112 and SH-K-20 owners reporting partial success. If you run it on another model, an issue saying what works and what does not, with the [diagnostics](troubleshooting.md#diagnostics) attached, helps everyone.
+> **Tested so far:** only on the author's own inverter, an SH8.0RT-V112 connected through a WiNet-S. You use the integration at your own risk; see [Use at your own risk](../README.md#use-at-your-own-risk). The register map is the one mkaiser's YAML package has used for years, mainly on an SH10RT over its LAN port, with SH-RS, SH-RT-V112 and SH-K-20 owners reporting partial success. If you run it on another model, an issue saying what works and what does not, with the [diagnostics](troubleshooting.md#diagnostics) attached, helps everyone.
 
 ## Families
 

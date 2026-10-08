@@ -45,7 +45,7 @@
           "host": "IP-adressen eller värdnamnet för WiNet-S-dongeln eller växelriktarens LAN-port.",
           "port": "Modbus TCP-porten. Sungrow använder 502."
         },
-        "description": "Anslut till en Sungrow SH hybridväxelriktare via Modbus TCP. Att ansluta via en WiNet-S tar ungefär 15 sekunder.",
+        "description": "Anslut till en Sungrow SH hybridväxelriktare via Modbus TCP. Att ansluta via en WiNet-S tar ungefär 15 sekunder. Används på egen risk: utvecklaren tar inget ansvar för vad integrationen används till.",
         "sections": {
           "more_options": {
             "data": {

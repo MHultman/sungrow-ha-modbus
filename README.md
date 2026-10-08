@@ -6,7 +6,13 @@ It works the way Home Assistant's built-in [SolarEdge Modbus](https://www.home-a
 
 The register map comes from mkaiser's [Sungrow-SHx-Inverter-Modbus-Home-Assistant](https://github.com/mkaiser/Sungrow-SHx-Inverter-Modbus-Home-Assistant) YAML package (see [NOTICE](NOTICE)).
 
-> **Status: early, untested on real hardware.** So far it has only run against a simulated inverter. Settings changed here change how your battery and grid connection behave, so check each control on your own system before you automate it.
+> **Status: early. Tested only on the author's own inverter**, an SH8.0RT-V112 connected through a WiNet-S. It may behave differently on yours. Settings changed here change how your battery and grid connection behave, so check each control on your own system before you automate it.
+
+## Use at your own risk
+
+This integration is provided as is, without warranty of any kind. It reads your inverter and changes its settings, which affects how your battery, your grid connection and your energy costs behave. **You use it entirely at your own risk. The author takes no responsibility for anything it is used for**, or for any damage, loss or cost that follows from using it, including to inverters, batteries and other equipment, their warranties, energy bills, or agreements with your grid operator.
+
+It is not affiliated with, endorsed by or supported by Sungrow. See also the [license](LICENSE).
 
 ## Documentation
 
