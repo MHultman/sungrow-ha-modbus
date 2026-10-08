@@ -4,8 +4,9 @@ from modbus_connection import (
     IllegalDataAddressError,
     IllegalDataValueError,
     ModbusConnectionError,
+    ModbusTimeoutError,
 )
-from modbus_connection.mock import MockModbusUnit
+from modbus_connection.mock import MockModbusUnit, WriteEvent
 import pytest
 
 from custom_components.sungrow_modbus.inverter import (
@@ -280,3 +281,61 @@ async def test_write_fails(
         await inverter.async_write(MIN_SOC, 15)
 
     assert inverter.value(MIN_SOC) == 5
+
+
+async def test_set_skips_a_setting_already_held(
+    mock_modbus_unit: MockModbusUnit,
+) -> None:
+    """Test a setting the inverter holds costs a read, not a write."""
+    inverter = await SungrowInverter.async_probe(mock_modbus_unit)
+    await inverter.async_update(inverter.setting_blocks)
+    writes: list[WriteEvent] = []
+    mock_modbus_unit.on_write(writes.append)
+    reads_before = len(mock_modbus_unit.read_events)
+
+    await inverter.async_set(MIN_SOC, 5)
+
+    assert writes == []
+    assert [read.address for read in mock_modbus_unit.read_events[reads_before:]] == [
+        13057
+    ]
+
+
+async def test_set_writes_a_change(mock_modbus_unit: MockModbusUnit) -> None:
+    """Test a changed setting is written straight away, without a read."""
+    inverter = await SungrowInverter.async_probe(mock_modbus_unit)
+    await inverter.async_update(inverter.setting_blocks)
+    reads_before = len(mock_modbus_unit.read_events)
+
+    await inverter.async_set(MIN_SOC, 15)
+
+    assert mock_modbus_unit.holding[13058] == 150
+    assert len(mock_modbus_unit.read_events) == reads_before
+
+
+async def test_set_writes_a_setting_changed_elsewhere(
+    mock_modbus_unit: MockModbusUnit,
+) -> None:
+    """Test an out-of-date cached value cannot make a write go missing."""
+    inverter = await SungrowInverter.async_probe(mock_modbus_unit)
+    await inverter.async_update(inverter.setting_blocks)
+    mock_modbus_unit.holding[13058] = 200  # changed in iSolarCloud
+
+    await inverter.async_set(MIN_SOC, 5)
+
+    assert mock_modbus_unit.holding[13058] == 50
+
+
+async def test_set_writes_when_the_check_fails(
+    mock_modbus_unit: MockModbusUnit,
+) -> None:
+    """Test a setting that could not be checked is written anyway."""
+    inverter = await SungrowInverter.async_probe(mock_modbus_unit)
+    await inverter.async_update(inverter.setting_blocks)
+    mock_modbus_unit.fail_read(13057, ModbusTimeoutError("no answer"))
+    writes: list[WriteEvent] = []
+    mock_modbus_unit.on_write(writes.append)
+
+    await inverter.async_set(MIN_SOC, 5)
+
+    assert [(write.address, write.values) for write in writes] == [(13058, [50])]

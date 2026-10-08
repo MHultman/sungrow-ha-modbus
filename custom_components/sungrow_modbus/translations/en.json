@@ -471,8 +471,14 @@
     "link_settings_in_use": {
       "message": "The inverter is already in use over different connection settings: {error}"
     },
+    "no_operating_mode": {
+      "message": "The inverter has no Operating mode control to force the battery with: the entity is disabled, or the inverter is set up read-only."
+    },
     "no_sungrow_inverter": {
       "message": "The device at this address is not a Sungrow hybrid inverter."
+    },
+    "power_above_limit": {
+      "message": "{power} W is above the most the forced power can be set to, {limit} W."
     },
     "rejected_value": {
       "message": "The inverter refused the value: {error}"
@@ -499,6 +505,37 @@
       "options": {
         "lan": "The inverter's own LAN port",
         "winet": "WiNet-S dongle"
+      }
+    },
+    "force_mode": {
+      "options": {
+        "charge": "Charge",
+        "discharge": "Discharge",
+        "idle": "Idle"
+      }
+    }
+  },
+  "services": {
+    "force_battery": {
+      "name": "Force battery",
+      "description": "Forces the battery to charge, discharge or idle for a while, then goes back to the self-consumption mode it started from.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Inverter",
+          "description": "The inverter to force. Can be left out with one inverter set up."
+        },
+        "mode": {
+          "name": "Mode",
+          "description": "Charge (from PV, and from the grid if PV is not enough), discharge, or idle."
+        },
+        "power": {
+          "name": "Power",
+          "description": "The charge or discharge power. Left out, the forced power already set is used. Not used to idle."
+        },
+        "duration": {
+          "name": "Duration",
+          "description": "How long to force the battery, from 1 minute to 24 hours."
+        }
       }
     }
   }

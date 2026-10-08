@@ -199,6 +199,36 @@ class SungrowInverter:
         if (words := self._words.get(register.block.name)) is not None:
             words[register.address - register.block.start] = raw
 
+    async def async_set(self, register: Register, value: float) -> None:
+        """Write a setting, unless the inverter already holds it.
+
+        Energy managers send the same setting again and again, and every
+        write is stored by the inverter. A setting that looks unchanged costs
+        a read instead: the cached words can be a minute old, and a change
+        made in iSolarCloud since must not make a write go missing. If that
+        read fails, the setting is written anyway.
+
+        Raises as `async_write` does.
+        """
+        raw = register.encode(value)
+        if self._raw(register) == raw and await self._async_still_holds(register, raw):
+            return
+        await self.async_write(register, value)
+
+    def _raw(self, register: Register) -> int | None:
+        if (words := self._words.get(register.block.name)) is None:
+            return None
+        return words[register.address - register.block.start]
+
+    async def _async_still_holds(self, register: Register, raw: int) -> bool:
+        try:
+            self._words[register.block.name] = await _async_read(
+                self._unit, register.block
+            )
+        except (ModbusError, SungrowConnectionError):
+            return False
+        return self._raw(register) == raw
+
     def value(self, register: Register) -> float | int | str | None:
         """Return a register's value as its block last reported it."""
         if (words := self._words.get(register.block.name)) is None:

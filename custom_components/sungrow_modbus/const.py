@@ -30,3 +30,11 @@ SETTINGS_SCAN_INTERVAL: Final = timedelta(seconds=60)
 # An optional cap on the battery power controls, set in the options. mkaiser's
 # guide recommends a conservative limit for the battery's health.
 CONF_BATTERY_MAX_POWER: Final = "battery_max_power"
+
+# Forces the battery to charge, discharge or idle for a while, then goes back
+# to self-consumption. For energy managers and automations.
+SERVICE_FORCE_BATTERY: Final = "force_battery"
+ATTR_MODE: Final = "mode"
+ATTR_POWER: Final = "power"
+ATTR_DURATION: Final = "duration"
+MAX_FORCE_DURATION: Final = timedelta(hours=24)

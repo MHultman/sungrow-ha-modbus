@@ -87,7 +87,7 @@ class SungrowModbusEntity(CoordinatorEntity[SungrowModbusDataUpdateCoordinator])
         )
 
     async def _async_write(self, register: Register, value: float) -> None:
-        """Write a setting, and show it straight away.
+        """Write a setting, unless the inverter holds it, and show it straight away.
 
         The inverter acknowledging the write is its confirmation, and the
         written value is what its block holds now. Every entity reading it is
@@ -95,7 +95,7 @@ class SungrowModbusEntity(CoordinatorEntity[SungrowModbusDataUpdateCoordinator])
         making the caller wait for the link to read it all back.
         """
         try:
-            await self._runtime_data.inverter.async_write(register, value)
+            await self._runtime_data.inverter.async_set(register, value)
         except SungrowConnectionError as err:
             # A write that got no answer may still have landed, so read back
             # what the inverter holds rather than show the old value for a

@@ -471,8 +471,14 @@
     "link_settings_in_use": {
       "message": "Växelriktaren används redan med andra anslutningsinställningar: {error}"
     },
+    "no_operating_mode": {
+      "message": "Växelriktaren har ingen Driftläge-kontroll att tvinga batteriet med: entiteten är inaktiverad, eller så är växelriktaren konfigurerad som skrivskyddad."
+    },
     "no_sungrow_inverter": {
       "message": "Enheten på den här adressen är ingen Sungrow hybridväxelriktare."
+    },
+    "power_above_limit": {
+      "message": "{power} W är mer än den forcerade effekten kan ställas in till, {limit} W."
     },
     "rejected_value": {
       "message": "Växelriktaren avvisade värdet: {error}"
@@ -499,6 +505,37 @@
       "options": {
         "lan": "Växelriktarens egen LAN-port",
         "winet": "WiNet-S-dongel"
+      }
+    },
+    "force_mode": {
+      "options": {
+        "charge": "Ladda",
+        "discharge": "Ladda ur",
+        "idle": "Vila"
+      }
+    }
+  },
+  "services": {
+    "force_battery": {
+      "name": "Forcera batteriet",
+      "description": "Tvingar batteriet att ladda, ladda ur eller vila en stund och går sedan tillbaka till det egenförbrukningsläge det startade från.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Växelriktare",
+          "description": "Växelriktaren som ska forceras. Kan utelämnas när bara en växelriktare är konfigurerad."
+        },
+        "mode": {
+          "name": "Läge",
+          "description": "Ladda (från solceller, och från elnätet om solcellerna inte räcker), ladda ur eller vila."
+        },
+        "power": {
+          "name": "Effekt",
+          "description": "Laddnings- eller urladdningseffekten. Utelämnad används den forcerade effekt som redan är inställd. Används inte för att vila."
+        },
+        "duration": {
+          "name": "Varaktighet",
+          "description": "Hur länge batteriet ska forceras, från 1 minut till 24 timmar."
+        }
       }
     }
   }

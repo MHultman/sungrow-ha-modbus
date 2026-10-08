@@ -13,6 +13,8 @@ from homeassistant.exceptions import (
     ConfigEntryNotReady,
     HomeAssistantError,
 )
+from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.typing import ConfigType
 
 from .const import (
     CONF_BATTERY_MAX_POWER,
@@ -31,6 +33,7 @@ from .coordinator import (
 from .entity import inverter_device_info
 from .helpers import apply_link_timing, create_modbus_params
 from .inverter import SungrowConnectionError, SungrowError, SungrowInverter
+from .services import async_setup_services
 
 PLATFORMS = [
     Platform.BINARY_SENSOR,
@@ -40,6 +43,14 @@ PLATFORMS = [
     Platform.SENSOR,
     Platform.SWITCH,
 ]
+
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
+
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Register the actions, once for every inverter set up."""
+    async_setup_services(hass)
+    return True
 
 
 async def async_setup_entry(

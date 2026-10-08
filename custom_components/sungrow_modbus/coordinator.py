@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from datetime import timedelta
-from typing import override
+from typing import TYPE_CHECKING, override
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -12,6 +12,9 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from .const import DOMAIN, LOGGER
 from .inverter import PollReport, SungrowConnectionError, SungrowInverter
 from .registers import Block
+
+if TYPE_CHECKING:
+    from .select import SungrowModbusOperatingModeSelectEntity
 
 type SungrowModbusConfigEntry = ConfigEntry[SungrowModbusRuntimeData]
 
@@ -98,6 +101,8 @@ class SungrowModbusRuntimeData:
     device_info: DeviceInfo
     # The most the battery power controls go to, if the user set one.
     battery_max_power: int | None = None
+    # What the force battery action drives, while it is enabled and added.
+    operating_mode: SungrowModbusOperatingModeSelectEntity | None = None
 
     @property
     def inverter(self) -> SungrowInverter:

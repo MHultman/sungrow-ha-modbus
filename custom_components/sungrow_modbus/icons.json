@@ -1,0 +1,7 @@
+{
+  "services": {
+    "force_battery": {
+      "service": "mdi:battery-clock"
+    }
+  }
+}

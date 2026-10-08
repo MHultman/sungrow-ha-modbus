@@ -1,0 +1,27 @@
+force_battery:
+  fields:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: sungrow_modbus
+    mode:
+      required: true
+      selector:
+        select:
+          options:
+            - charge
+            - discharge
+            - idle
+          translation_key: force_mode
+    power:
+      selector:
+        number:
+          min: 0
+          max: 50000
+          step: 10
+          unit_of_measurement: W
+          mode: box
+    duration:
+      required: true
+      selector:
+        duration:

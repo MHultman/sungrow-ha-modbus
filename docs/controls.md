@@ -29,11 +29,11 @@ The controls change how your inverter runs the battery and the grid connection. 
 
 EMS mode, battery forced charge/discharge, backup reserve, the start powers, load adjustment and start/stop are configuration entities, so they stay off auto-generated dashboards. They are still on the device page, under Configuration. Which models get which control is in [Models and entities](models-and-entities.md#entities).
 
-A value you set shows straight away. Settings are read back from the inverter every 60 seconds, so a change made in iSolarCloud shows within a minute. A write that gets no answer has the settings read back at once, since it may have landed anyway. A value the inverter refuses gives an error, and the old value stays.
+A value you set shows straight away. A value the inverter already holds is not written again: the setting is read back first, so a change made elsewhere is never missed. Settings are read back from the inverter every 60 seconds, so a change made in iSolarCloud shows within a minute. A write that gets no answer has the settings read back at once, since it may have landed anyway. A value the inverter refuses gives an error, and the old value stays.
 
 ## Operating mode and export mode
 
-The two selects set everything a common setup needs in one pick, so there is nothing to build yourself. Use them on a dashboard, or from an automation with the `select.select_option` action, for example to charge on a cheap tariff.
+The two selects set everything a common setup needs in one pick, so there is nothing to build yourself. Use them on a dashboard, or from an automation with the `select.select_option` action. To charge or discharge for a while, for example in the cheap hours of a tariff, the **Force battery** action does it and goes back to self-consumption by itself; see [Energy managers and automations](energy-managers.md#force-battery).
 
 **Operating mode**
 

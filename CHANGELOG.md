@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- A **Force battery** action (`sungrow_modbus.force_battery`): charge, discharge or idle the battery at a given power for 1 minute to 24 hours, then go back to the self-consumption mode it started from. The end survives restarts, is retried until the inverter answers, and is cancelled by picking an operating mode by hand. The Operating mode select shows when it ends.
+- [Energy managers and automations](docs/energy-managers.md): which entities and actions to use from EMHASS, Predbat, evcc or your own automations, with examples.
+
+### Changed
+
+- A control set to a value the inverter already holds is not written again. The setting is read back first, so a change made in iSolarCloud is never missed.
+
 ## 0.4.0 - 2026-10-08
 
 ### Added

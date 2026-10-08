@@ -2,15 +2,21 @@
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, override
+from datetime import datetime, timedelta
+from functools import partial
+from typing import Any, Self, override
 
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.const import EntityCategory
-from homeassistant.core import HomeAssistant
+from homeassistant.core import CALLBACK_TYPE, HomeAssistant
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
+from homeassistant.helpers.event import async_track_point_in_utc_time
 from homeassistant.helpers.restore_state import ExtraStoredData, RestoreEntity
+from homeassistant.util import dt as dt_util
 
 from . import registers as reg
+from .const import DOMAIN, LOGGER
 from .coordinator import SungrowModbusConfigEntry, SungrowModbusRuntimeData
 from .entity import SungrowModbusEntity, SungrowModbusEntityDescription
 from .limits import battery_power_ceiling, capped, rated_output, reported
@@ -192,6 +198,18 @@ PRESET_SELECTS: tuple[SungrowModbusPresetSelectEntityDescription, ...] = (
 )
 
 
+# What each mode of the force battery action picks.
+FORCE_MODES = {
+    "charge": "forced_charge",
+    "discharge": "forced_discharge",
+    "idle": "battery_bypass",
+}
+# What a forced mode ends in, if it started from one of them.
+_RESUMABLE = ("self_consumption", "self_consumption_no_discharge")
+# How soon ending a forced mode is tried again when the inverter is not reached.
+END_FORCED_RETRY = timedelta(minutes=1)
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: SungrowModbusConfigEntry,
@@ -203,7 +221,9 @@ async def async_setup_entry(
     async_add_entities(
         [
             *(
-                SungrowModbusPresetSelectEntity(entry=entry, description=description)
+                PRESET_ENTITIES.get(description.key, SungrowModbusPresetSelectEntity)(
+                    entry=entry, description=description
+                )
                 for description in PRESET_SELECTS
             ),
             *(
@@ -295,7 +315,11 @@ class SungrowModbusPresetSelectEntity(SungrowModbusEntity, SelectEntity, Restore
 
     @override
     async def async_select_option(self, option: str) -> None:
-        """Write the settings of a preset, skipping those already held.
+        """Write the settings of a preset."""
+        await self._async_apply(option)
+
+    async def _async_apply(self, option: str) -> None:
+        """Write the settings of a preset.
 
         The parked setting goes first, so a forced discharge never starts
         held at 10 W, and an export limit is in place before it is switched on.
@@ -306,8 +330,7 @@ class SungrowModbusPresetSelectEntity(SungrowModbusEntity, SelectEntity, Restore
         elif preset.parks is False:
             await self._async_unpark()
         for register, value in (*preset.holds, *preset.also_writes):
-            if self.coordinator.inverter.value(register) != value:
-                await self._async_write(register, value)
+            await self._async_write(register, value)
 
     def _is_parked(self) -> bool:
         parked = self.entity_description.parked
@@ -337,3 +360,171 @@ class SungrowModbusPresetSelectEntity(SungrowModbusEntity, SelectEntity, Restore
         value = ceiling if self._remembered is None else min(self._remembered, ceiling)
         await self._async_write(self.entity_description.parked.register, value)
         self._remembered = None
+
+
+@dataclass(frozen=True, kw_only=True)
+class ForcedMode:
+    """A forced mode the force battery action set, and when it ends."""
+
+    option: str
+    until: datetime
+    # The self-consumption option it ends in.
+    resume: str
+
+    def as_dict(self) -> dict[str, str]:
+        """Return the forced mode for storage."""
+        return {
+            "option": self.option,
+            "until": self.until.isoformat(),
+            "resume": self.resume,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, str]) -> Self | None:
+        """Return a stored forced mode, or None for one that does not parse."""
+        if (until := dt_util.parse_datetime(data.get("until", ""))) is None:
+            return None
+        return cls(option=data["option"], until=until, resume=data["resume"])
+
+
+@dataclass
+class OperatingModeStoredData(RememberedSetting):
+    """What the operating mode keeps across restarts."""
+
+    forced: ForcedMode | None
+
+    @override
+    def as_dict(self) -> dict[str, Any]:
+        """Return the remembered value and the forced mode for storage."""
+        forced = None if self.forced is None else self.forced.as_dict()
+        return {**super().as_dict(), "forced": forced}
+
+
+class SungrowModbusOperatingModeSelectEntity(SungrowModbusPresetSelectEntity):
+    """The operating mode, which the force battery action drives for a while.
+
+    A forced mode set for a while ends by itself, in the self-consumption
+    option it started from, so an energy manager that stops can never leave
+    the battery forcing. The end is kept across restarts, and one that passed
+    while Home Assistant was down happens as it starts. Picking an option by
+    hand cancels it. One the inverter left by other means is not ended.
+    """
+
+    _forced: ForcedMode | None = None
+    _cancel_end: CALLBACK_TYPE | None = None
+
+    @override
+    async def async_added_to_hass(self) -> None:
+        """Restore a forced mode, and take the force battery action."""
+        await super().async_added_to_hass()
+        data = await self.async_get_last_extra_data()
+        if data is not None and (forced := data.as_dict().get("forced")):
+            self._forced = ForcedMode.from_dict(forced)
+        if self._forced is not None:
+            self._schedule_end(self._forced, self._forced.until)
+        self._runtime_data.operating_mode = self
+
+    @override
+    async def async_will_remove_from_hass(self) -> None:
+        """Hand back the force battery action, and stop waiting for an end."""
+        self._runtime_data.operating_mode = None
+        self._cancel_scheduled_end()
+        await super().async_will_remove_from_hass()
+
+    @property
+    @override
+    def extra_restore_state_data(self) -> OperatingModeStoredData:
+        """Return what to keep across restarts."""
+        return OperatingModeStoredData(self._remembered, self._forced)
+
+    @property
+    @override
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        """Return when a forced mode set for a while ends."""
+        if self._forced is None:
+            return None
+        return {"forced_until": self._forced.until}
+
+    @override
+    async def async_select_option(self, option: str) -> None:
+        """Write the settings of a preset, ending a forced mode set for a while."""
+        self._cancel_scheduled_end()
+        self._forced = None
+        await self._async_apply(option)
+
+    async def async_force(
+        self, mode: str, duration: timedelta, power: int | None
+    ) -> None:
+        """Force the battery for a while, then go back to self-consumption.
+
+        The end is set before anything is written, so a write that fails
+        halfway cannot leave a forced mode without one. A new call while one
+        is running replaces it, and still ends where the first one started.
+        """
+        if power is not None and mode != "idle":
+            self._check_forced_power(power)
+        resume = self._forced.resume if self._forced else self._resume_option()
+        self._cancel_scheduled_end()
+        self._forced = forced = ForcedMode(
+            option=FORCE_MODES[mode], until=dt_util.utcnow() + duration, resume=resume
+        )
+        self._schedule_end(forced, forced.until)
+        self.async_write_ha_state()
+
+        if power is not None and mode != "idle":
+            await self._async_write(reg.FORCED_CHARGE_DISCHARGE_POWER, power)
+        await self._async_apply(forced.option)
+
+    def _check_forced_power(self, power: int) -> None:
+        ceiling = battery_power_ceiling(reg.FORCED_CHARGE_DISCHARGE_POWER)
+        limit = capped(
+            ceiling(self.coordinator.inverter), self._runtime_data.battery_max_power
+        )
+        if power > limit:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="power_above_limit",
+                translation_placeholders={"power": str(power), "limit": f"{limit:g}"},
+            )
+
+    def _resume_option(self) -> str:
+        current = self.current_option
+        return current if current in _RESUMABLE else "self_consumption"
+
+    def _schedule_end(self, forced: ForcedMode, when: datetime) -> None:
+        self._cancel_end = async_track_point_in_utc_time(
+            self.hass, partial(self._async_end_forced, forced), when
+        )
+
+    def _cancel_scheduled_end(self) -> None:
+        if self._cancel_end is not None:
+            self._cancel_end()
+            self._cancel_end = None
+
+    async def _async_end_forced(self, forced: ForcedMode, _now: datetime) -> None:
+        self._cancel_end = None
+        if not self.available:
+            self._retry_end(forced, "its settings are not being read")
+            return
+        if self.current_option == forced.option:
+            try:
+                await self._async_apply(forced.resume)
+            except HomeAssistantError as err:
+                self._retry_end(forced, str(err))
+                return
+        self._forced = None
+        self.async_write_ha_state()
+
+    def _retry_end(self, forced: ForcedMode, reason: str) -> None:
+        LOGGER.warning(
+            "Could not end %s on %s, trying again in a minute: %s",
+            forced.option,
+            self.entity_id,
+            reason,
+        )
+        self._schedule_end(forced, dt_util.utcnow() + END_FORCED_RETRY)
+
+
+PRESET_ENTITIES: dict[str, type[SungrowModbusPresetSelectEntity]] = {
+    "operating_mode": SungrowModbusOperatingModeSelectEntity,
+}
