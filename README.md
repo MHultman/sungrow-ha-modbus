@@ -6,7 +6,7 @@ It works the way Home Assistant's built-in [SolarEdge Modbus](https://www.home-a
 
 The register map comes from mkaiser's [Sungrow-SHx-Inverter-Modbus-Home-Assistant](https://github.com/mkaiser/Sungrow-SHx-Inverter-Modbus-Home-Assistant) YAML package (see [NOTICE](NOTICE)).
 
-> **Status: read-only.** This version reads the inverter and does not write to it. The controls the YAML package has (EMS mode, forced charge and discharge, SoC limits, export power limit, backup mode) are not here yet.
+> **Status: early, untested on real hardware.** So far it has only run against a simulated inverter. It is read-only: it reads the inverter and does not write to it. The controls the YAML package has (EMS mode, forced charge and discharge, SoC limits, export power limit, backup mode) are not here yet.
 
 ## Requirements
 
