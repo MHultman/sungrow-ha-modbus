@@ -1,8 +1,10 @@
 name: Release
 
+# Run by hand once the manifest version is bumped and CHANGELOG.md has a
+# section for it. Tags the commit it runs on as v<version> and publishes the
+# release, with that section as its notes.
 on:
-  push:
-    tags: ["v*"]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -13,26 +15,38 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      # HACS installs what the tag points at, and Home Assistant reports the
-      # manifest's version, so the two have to agree.
-      - name: Check the tag matches the manifest version
+      - name: Read the version from the manifest
+        id: version
         run: |
           version=$(jq -r .version custom_components/sungrow_modbus/manifest.json)
-          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match manifest version $version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+
+      - name: Check the version has not been released
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            echo "::error::$TAG is already released; bump the manifest version first"
             exit 1
           fi
 
       - name: Take the release notes from the changelog
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
-          awk -v version="${GITHUB_REF_NAME#v}" \
+          awk -v version="$VERSION" \
             '/^## / { found = ($2 == version); next } found' CHANGELOG.md > notes.md
           if [ ! -s notes.md ]; then
-            echo "::error::CHANGELOG.md has no section for ${GITHUB_REF_NAME#v}"
+            echo "::error::CHANGELOG.md has no section for $VERSION"
             exit 1
           fi
 
-      - name: Create the release
+      - name: Tag and publish the release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file notes.md
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          gh release create "$TAG" --target "$GITHUB_SHA" --title "$TAG" \
+            --notes-file notes.md
