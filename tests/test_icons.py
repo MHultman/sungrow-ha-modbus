@@ -3,6 +3,7 @@
 import json
 from pathlib import Path
 
+from PIL import Image
 import pytest
 
 INTEGRATION = Path(__file__).parent.parent / "custom_components" / "sungrow_modbus"
@@ -40,3 +41,20 @@ def test_actions_have_icons() -> None:
     services = (INTEGRATION / "services.yaml").read_text()
     names = [line[:-1] for line in services.splitlines() if line and line[0] != " "]
     assert set(names) == set(ICONS["services"])
+
+
+@pytest.mark.parametrize(
+    ("name", "size"),
+    [
+        ("icon.png", 256),
+        ("icon@2x.png", 512),
+        ("dark_icon.png", 256),
+        ("dark_icon@2x.png", 512),
+    ],
+)
+def test_brand_images(name: str, size: int) -> None:
+    """Test the brand images Home Assistant shows are square, transparent PNGs."""
+    with Image.open(INTEGRATION / "brand" / name) as image:
+        assert image.format == "PNG"
+        assert image.size == (size, size)
+        assert image.mode == "RGBA"

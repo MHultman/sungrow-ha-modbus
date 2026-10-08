@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- A brand icon, with a variant for dark themes, shown on the integration's page in Home Assistant. Home Assistant serves it from the integration itself; the HACS store may still show a placeholder.
+
 ## 0.6.2 - 2026-10-08
 
 ### Changed

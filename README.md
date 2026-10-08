@@ -82,6 +82,8 @@ python3.14 -m venv .venv
 
 The tests run the integration against the in-memory Modbus unit from the `modbus-connection` library, seeded with a synthetic SH8.0RT-V112.
 
+The brand icon in `custom_components/sungrow_modbus/brand/` is drawn from the SVGs in `script/brand/`, rendered at 256 and 512 pixels on a transparent background.
+
 [Models and entities](docs/models-and-entities.md) is generated from the code. After changing models, entities or their English names, regenerate it with `python -m script.generate_docs`; a test fails while it is out of date.
 
 To release: bump `version` in `custom_components/sungrow_modbus/manifest.json`, add a section for it to `CHANGELOG.md`, push, and run the **Release** workflow under Actions.
