@@ -1,0 +1,29 @@
+[project]
+name = "sungrow-modbus"
+version = "0.1.0"
+description = "Home Assistant integration for Sungrow SH hybrid inverters over Modbus"
+requires-python = ">=3.14.2"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["custom_components.sungrow_modbus"]
+
+[tool.ruff]
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["B", "D", "E", "F", "I", "PL", "RUF", "SIM", "UP", "W"]
+ignore = ["D202", "D203", "D213", "E501", "PLR0913", "PLR2004"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["D103"]
+
+[tool.ruff.lint.isort]
+force-sort-within-sections = true
+known-first-party = ["custom_components.sungrow_modbus"]
+known-third-party = ["homeassistant"]
+combine-as-imports = true

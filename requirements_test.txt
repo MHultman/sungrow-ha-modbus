@@ -1,0 +1,12 @@
+# Pins Home Assistant 2026.10.0b4, which carries the same modbus integration
+# API and modbus-connection version as 2026.10.0. It brings pytest and
+# pytest-cov along at the versions it was built with.
+pytest-homeassistant-custom-component==0.13.370
+
+# What Home Assistant's modbus integration requires at those versions. Home
+# Assistant installs these at runtime; the tests need them up front.
+modbus-connection[tmodbus]==4.12.3
+pymodbus==3.13.1
+tmodbus==0.6.2
+
+ruff==0.14.0

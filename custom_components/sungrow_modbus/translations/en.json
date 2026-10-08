@@ -1,0 +1,383 @@
+{
+  "config": {
+    "abort": {
+      "already_configured": "This inverter is already configured.",
+      "reconfigure_successful": "Re-configuration was successful.",
+      "wrong_device": "The device at this address is not the inverter this entry is for."
+    },
+    "error": {
+      "cannot_connect": "Could not reach the inverter. Check the address and port, and that nothing else (like a Modbus YAML package) is connected to it.",
+      "no_sungrow_inverter": "Something answered, but it is not a Sungrow hybrid inverter."
+    },
+    "step": {
+      "reconfigure": {
+        "data": {
+          "connection": "Connected through",
+          "host": "Host",
+          "port": "Port"
+        },
+        "data_description": {
+          "connection": "The WiNet-S dongle needs slower, more patient polling than the inverter's own LAN port.",
+          "host": "The IP address or host name of the WiNet-S dongle or the inverter's LAN port.",
+          "port": "The Modbus TCP port. Sungrow uses 502."
+        },
+        "description": "Update how the inverter is reached. Connecting through a WiNet-S takes about 15 seconds.",
+        "sections": {
+          "more_options": {
+            "data": {
+              "unit_id": "Device ID"
+            },
+            "data_description": {
+              "unit_id": "The Modbus device ID of the inverter. Sungrow uses 1."
+            },
+            "name": "More options"
+          }
+        }
+      },
+      "user": {
+        "data": {
+          "connection": "Connected through",
+          "host": "Host",
+          "port": "Port"
+        },
+        "data_description": {
+          "connection": "The WiNet-S dongle needs slower, more patient polling than the inverter's own LAN port.",
+          "host": "The IP address or host name of the WiNet-S dongle or the inverter's LAN port.",
+          "port": "The Modbus TCP port. Sungrow uses 502."
+        },
+        "description": "Connect to a Sungrow SH hybrid inverter over Modbus TCP. Connecting through a WiNet-S takes about 15 seconds.",
+        "sections": {
+          "more_options": {
+            "data": {
+              "unit_id": "Device ID"
+            },
+            "data_description": {
+              "unit_id": "The Modbus device ID of the inverter. Sungrow uses 1."
+            },
+            "name": "More options"
+          }
+        }
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "battery_charging": {
+        "name": "Battery charging"
+      },
+      "battery_discharging": {
+        "name": "Battery discharging"
+      },
+      "exporting": {
+        "name": "Exporting to grid"
+      },
+      "importing": {
+        "name": "Importing from grid"
+      },
+      "negative_load_power": {
+        "name": "Negative load power"
+      },
+      "positive_load_power": {
+        "name": "Positive load power"
+      },
+      "pv_generating": {
+        "name": "PV generating"
+      }
+    },
+    "sensor": {
+      "backup_phase_a_power": {
+        "name": "Backup phase A power"
+      },
+      "backup_phase_b_power": {
+        "name": "Backup phase B power"
+      },
+      "backup_phase_c_power": {
+        "name": "Backup phase C power"
+      },
+      "battery_capacity": {
+        "name": "Battery capacity"
+      },
+      "battery_charging_power": {
+        "name": "Battery charging power"
+      },
+      "battery_current": {
+        "name": "Battery current"
+      },
+      "battery_discharging_power": {
+        "name": "Battery discharging power"
+      },
+      "battery_level": {
+        "name": "Battery level"
+      },
+      "battery_power": {
+        "name": "Battery power"
+      },
+      "battery_state_of_health": {
+        "name": "Battery state of health"
+      },
+      "battery_temperature": {
+        "name": "Battery temperature"
+      },
+      "battery_voltage": {
+        "name": "Battery voltage"
+      },
+      "bdc_rated_power": {
+        "name": "Battery converter rated power"
+      },
+      "bms_max_charging_current": {
+        "name": "BMS max charging current"
+      },
+      "bms_max_discharging_current": {
+        "name": "BMS max discharging current"
+      },
+      "daily_battery_charge": {
+        "name": "Daily battery charge"
+      },
+      "daily_battery_charge_from_pv": {
+        "name": "Daily battery charge from PV"
+      },
+      "daily_battery_discharge": {
+        "name": "Daily battery discharge"
+      },
+      "daily_consumption": {
+        "name": "Daily consumption"
+      },
+      "daily_direct_consumption": {
+        "name": "Daily direct consumption"
+      },
+      "daily_export": {
+        "name": "Daily export"
+      },
+      "daily_import": {
+        "name": "Daily import"
+      },
+      "daily_output_energy": {
+        "name": "Daily PV generation and battery discharge"
+      },
+      "daily_pv_export": {
+        "name": "Daily export from PV"
+      },
+      "daily_pv_generation": {
+        "name": "Daily PV generation"
+      },
+      "export_power": {
+        "name": "Export power"
+      },
+      "export_power_limit_max": {
+        "name": "Export power limit maximum"
+      },
+      "export_power_limit_min": {
+        "name": "Export power limit minimum"
+      },
+      "grid_frequency": {
+        "name": "Grid frequency"
+      },
+      "grid_power": {
+        "name": "Grid power"
+      },
+      "import_power": {
+        "name": "Import power"
+      },
+      "inverter_temperature": {
+        "name": "Inverter temperature"
+      },
+      "load_power": {
+        "name": "Load power"
+      },
+      "meter_active_power": {
+        "name": "Meter active power"
+      },
+      "meter_phase_a_active_power": {
+        "name": "Meter phase A active power"
+      },
+      "meter_phase_a_current": {
+        "name": "Meter phase A current"
+      },
+      "meter_phase_a_voltage": {
+        "name": "Meter phase A voltage"
+      },
+      "meter_phase_b_active_power": {
+        "name": "Meter phase B active power"
+      },
+      "meter_phase_b_current": {
+        "name": "Meter phase B current"
+      },
+      "meter_phase_b_voltage": {
+        "name": "Meter phase B voltage"
+      },
+      "meter_phase_c_active_power": {
+        "name": "Meter phase C active power"
+      },
+      "meter_phase_c_current": {
+        "name": "Meter phase C current"
+      },
+      "meter_phase_c_voltage": {
+        "name": "Meter phase C voltage"
+      },
+      "mppt1_current": {
+        "name": "MPPT1 current"
+      },
+      "mppt1_power": {
+        "name": "MPPT1 power"
+      },
+      "mppt1_voltage": {
+        "name": "MPPT1 voltage"
+      },
+      "mppt2_current": {
+        "name": "MPPT2 current"
+      },
+      "mppt2_power": {
+        "name": "MPPT2 power"
+      },
+      "mppt2_voltage": {
+        "name": "MPPT2 voltage"
+      },
+      "mppt3_current": {
+        "name": "MPPT3 current"
+      },
+      "mppt3_power": {
+        "name": "MPPT3 power"
+      },
+      "mppt3_voltage": {
+        "name": "MPPT3 voltage"
+      },
+      "mppt4_current": {
+        "name": "MPPT4 current"
+      },
+      "mppt4_power": {
+        "name": "MPPT4 power"
+      },
+      "mppt4_voltage": {
+        "name": "MPPT4 voltage"
+      },
+      "phase_a_current": {
+        "name": "Phase A current"
+      },
+      "phase_a_power": {
+        "name": "Phase A power"
+      },
+      "phase_a_voltage": {
+        "name": "Phase A voltage"
+      },
+      "phase_b_current": {
+        "name": "Phase B current"
+      },
+      "phase_b_power": {
+        "name": "Phase B power"
+      },
+      "phase_b_voltage": {
+        "name": "Phase B voltage"
+      },
+      "phase_c_current": {
+        "name": "Phase C current"
+      },
+      "phase_c_power": {
+        "name": "Phase C power"
+      },
+      "phase_c_voltage": {
+        "name": "Phase C voltage"
+      },
+      "power_factor": {
+        "name": "Power factor"
+      },
+      "rated_output_power": {
+        "name": "Rated output power"
+      },
+      "reactive_power": {
+        "name": "Reactive power"
+      },
+      "running_state": {
+        "name": "Running state",
+        "state": {
+          "afci_self_test_shutdown": "AFCI self-test shutdown",
+          "communication_fault": "Communication fault",
+          "derating": "Derating",
+          "dispatch": "Dispatch",
+          "emergency_charging": "Emergency charging",
+          "emergency_stop": "Emergency stop",
+          "external_ems": "External EMS",
+          "fault": "Fault",
+          "forced_mode": "Forced mode",
+          "initial_standby": "Initial standby",
+          "intelligent_station_building": "Intelligent station building",
+          "key_stop": "Key stop",
+          "maintenance": "Maintenance",
+          "microgrid": "Microgrid",
+          "off_grid": "Off-grid",
+          "off_grid_charge": "Off-grid charge",
+          "open_loop": "Open loop",
+          "restarting": "Restarting",
+          "running": "Running",
+          "safe_mode": "Safe mode",
+          "standby": "Standby",
+          "starting": "Starting",
+          "stop": "Stop",
+          "uninitialized": "Uninitialized",
+          "update_failed": "Update failed",
+          "warning": "Running with warning"
+        }
+      },
+      "total_active_power": {
+        "name": "Total active power"
+      },
+      "total_backup_power": {
+        "name": "Total backup power"
+      },
+      "total_battery_charge": {
+        "name": "Total battery charge"
+      },
+      "total_battery_charge_from_pv": {
+        "name": "Total battery charge from PV"
+      },
+      "total_battery_discharge": {
+        "name": "Total battery discharge"
+      },
+      "total_consumption": {
+        "name": "Total consumption"
+      },
+      "total_dc_power": {
+        "name": "Total DC power"
+      },
+      "total_direct_consumption": {
+        "name": "Total direct consumption"
+      },
+      "total_export": {
+        "name": "Total export"
+      },
+      "total_import": {
+        "name": "Total import"
+      },
+      "total_output_energy": {
+        "name": "Total PV generation and battery discharge"
+      },
+      "total_pv_export": {
+        "name": "Total export from PV"
+      },
+      "total_pv_generation": {
+        "name": "Total PV generation"
+      }
+    }
+  },
+  "exceptions": {
+    "communication_error": {
+      "message": "Could not communicate with the inverter: {error}"
+    },
+    "link_settings_in_use": {
+      "message": "The inverter is already in use over different connection settings: {error}"
+    },
+    "no_sungrow_inverter": {
+      "message": "The device at this address is not a Sungrow hybrid inverter."
+    },
+    "wrong_inverter": {
+      "message": "A different inverter now answers at this address. Reconfigure the entry to point it at the right one."
+    }
+  },
+  "selector": {
+    "connection": {
+      "options": {
+        "lan": "The inverter's own LAN port",
+        "winet": "WiNet-S dongle"
+      }
+    }
+  }
+}
