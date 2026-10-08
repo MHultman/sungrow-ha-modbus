@@ -54,3 +54,17 @@ def test_issue_template_labels_exist() -> None:
     }
     for template in (ROOT / ".github" / "ISSUE_TEMPLATE").glob("*.yml"):
         assert set(yaml.safe_load(template.read_text())["labels"]) <= labels
+
+
+def test_issue_form_dropdowns_avoid_reserved_words() -> None:
+    """Test no dropdown option is one GitHub reserves.
+
+    GitHub drops a whole issue form over an option named "None", and opens a
+    blank issue in its place. The public schema does not check for it.
+    """
+    for template in (ROOT / ".github" / "ISSUE_TEMPLATE").glob("*.yml"):
+        for field in yaml.safe_load(template.read_text())["body"]:
+            if field["type"] == "dropdown":
+                options = field["attributes"]["options"]
+                assert all(isinstance(option, str) for option in options)
+                assert not {option.lower() for option in options} & {"none", "n/a"}

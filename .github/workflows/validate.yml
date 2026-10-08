@@ -24,6 +24,3 @@ jobs:
       - uses: hacs/action@main
         with:
           category: integration
-          # The description and topics are repository settings on GitHub, set
-          # by hand. They only matter for the default HACS store.
-          ignore: description topics

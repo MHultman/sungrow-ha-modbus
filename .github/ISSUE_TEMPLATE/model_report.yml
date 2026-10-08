@@ -61,7 +61,7 @@ body:
     attributes:
       label: Battery
       options:
-        - None
+        - No battery
         - Sungrow SBR
         - Sungrow SBH
         - Another battery (say which below)
