@@ -24,6 +24,7 @@ jobs:
       - uses: hacs/action@main
         with:
           category: integration
-          # Brand images live in home-assistant/brands, which only matters for
-          # the default HACS store, not for installing as a custom repository.
-          ignore: brands
+          # These only matter for the default HACS store, not for installing as
+          # a custom repository: brand images live in home-assistant/brands, and
+          # the description and topics are repository settings on GitHub.
+          ignore: brands description topics
