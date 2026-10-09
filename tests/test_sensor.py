@@ -12,7 +12,7 @@ from pytest_homeassistant_custom_component.common import (
     mock_restore_cache_with_extra_data,
 )
 
-from custom_components.sungrow_modbus.const import SCAN_INTERVAL
+from custom_components.sungrow_modbus.helpers import WINET_TIMING
 
 from .conftest import seed_inverter, set_u32
 
@@ -121,7 +121,7 @@ async def test_unknown_running_state(
 ) -> None:
     """Test a running state code nobody knows shows as unknown."""
     mock_modbus_unit.input[12999] = 0x7777
-    freezer.tick(SCAN_INTERVAL)
+    freezer.tick(WINET_TIMING.readings_interval)
     async_fire_time_changed(hass)
     await hass.async_block_till_done()
 
@@ -150,7 +150,7 @@ async def test_lifetime_counter_ignores_drops(
     entity_id = f"{PREFIX}_total_import"
 
     set_u32(mock_modbus_unit, 13036, 0)
-    freezer.tick(SCAN_INTERVAL)
+    freezer.tick(WINET_TIMING.readings_interval)
     async_fire_time_changed(hass)
     await hass.async_block_till_done()
 
@@ -158,7 +158,7 @@ async def test_lifetime_counter_ignores_drops(
     assert "lower than the 25206.1 kWh seen before" in caplog.text
 
     set_u32(mock_modbus_unit, 13036, 252070)
-    freezer.tick(SCAN_INTERVAL)
+    freezer.tick(WINET_TIMING.readings_interval)
     async_fire_time_changed(hass)
     await hass.async_block_till_done()
 
@@ -173,7 +173,7 @@ async def test_daily_counter_resets(
 ) -> None:
     """Test a daily counter follows the inverter back to zero at midnight."""
     mock_modbus_unit.input[13035] = 0
-    freezer.tick(SCAN_INTERVAL)
+    freezer.tick(WINET_TIMING.readings_interval)
     async_fire_time_changed(hass)
     await hass.async_block_till_done()
 
@@ -212,7 +212,7 @@ async def test_counters_ignore_not_available(
     """Test a counter's "not available" value never reaches the statistics."""
     set_u32(mock_modbus_unit, 13036, 0xFFFFFFFF)
     mock_modbus_unit.input[13035] = 0xFFFF
-    freezer.tick(SCAN_INTERVAL)
+    freezer.tick(WINET_TIMING.readings_interval)
     async_fire_time_changed(hass)
     await hass.async_block_till_done()
 
@@ -222,7 +222,7 @@ async def test_counters_ignore_not_available(
     assert hass.states.get(f"{PREFIX}_daily_consumption").state == STATE_UNKNOWN
 
     set_u32(mock_modbus_unit, 13036, 252070)
-    freezer.tick(SCAN_INTERVAL)
+    freezer.tick(WINET_TIMING.readings_interval)
     async_fire_time_changed(hass)
     await hass.async_block_till_done()
 

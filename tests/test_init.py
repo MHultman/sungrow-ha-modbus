@@ -1,5 +1,7 @@
 """Tests for setting up and polling the SunGrow Modbus integration."""
 
+from datetime import timedelta
+
 from freezegun.api import FrozenDateTimeFactory
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import STATE_UNAVAILABLE
@@ -17,13 +19,21 @@ from pytest_homeassistant_custom_component.common import (
     async_fire_time_changed,
 )
 
-from custom_components.sungrow_modbus.const import DOMAIN, SCAN_INTERVAL
+from custom_components.sungrow_modbus.const import (
+    CONF_CONNECTION,
+    CONF_READINGS_INTERVAL,
+    CONNECTION_LAN,
+    CONNECTION_WINET,
+    DOMAIN,
+    SETTINGS_SCAN_INTERVAL,
+)
+from custom_components.sungrow_modbus.helpers import WINET_TIMING
 
 from .conftest import SERIAL_NUMBER, entry_data, seed_inverter
 
 
 async def _async_poll(hass: HomeAssistant, freezer: FrozenDateTimeFactory) -> None:
-    freezer.tick(SCAN_INTERVAL)
+    freezer.tick(WINET_TIMING.readings_interval)
     async_fire_time_changed(hass)
     await hass.async_block_till_done()
 
@@ -229,3 +239,34 @@ async def test_unknown_model_is_read_only(
     assert not any(entity.entity_id.endswith("_nominal") for entity in entities)
     assert all(read.register_type == "input" for read in mock_modbus_unit.read_events)
     assert "set up read-only" in caplog.text
+
+
+@pytest.mark.parametrize(
+    ("connection", "options", "seconds"),
+    [
+        (CONNECTION_WINET, {}, 10),
+        (CONNECTION_LAN, {}, 5),
+        (CONNECTION_LAN, {CONF_READINGS_INTERVAL: 30}, 30),
+        # Set over the LAN port, then reconfigured to a WiNet-S.
+        (CONNECTION_WINET, {CONF_READINGS_INTERVAL: 2}, 5),
+    ],
+)
+async def test_readings_interval(
+    hass: HomeAssistant,
+    connection: str,
+    options: dict[str, int],
+    seconds: int,
+) -> None:
+    """Test the connection sets how often measurements are read, unless set."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        unique_id=SERIAL_NUMBER,
+        data=entry_data(**{CONF_CONNECTION: connection}),
+        options=options,
+    )
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert entry.runtime_data.readings.update_interval == timedelta(seconds=seconds)
+    assert entry.runtime_data.settings.update_interval == SETTINGS_SCAN_INTERVAL

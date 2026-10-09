@@ -491,10 +491,12 @@
     "step": {
       "init": {
         "data": {
-          "battery_max_power": "Batteriets max effekt"
+          "battery_max_power": "Batteriets max effekt",
+          "readings_interval": "Mätintervall"
         },
         "data_description": {
-          "battery_max_power": "Begränsar reglagen för forcerad laddning/urladdning och batteriets max ladd- och urladdningseffekt, till exempel till vad batteritillverkaren rekommenderar. Lämna tomt för att tillåta upp till växelriktarens märkeffekt."
+          "battery_max_power": "Begränsar reglagen för forcerad laddning/urladdning och batteriets max ladd- och urladdningseffekt, till exempel till vad batteritillverkaren rekommenderar. Lämna tomt för att tillåta upp till växelriktarens märkeffekt.",
+          "readings_interval": "Hur ofta mätvärdena läses av, i sekunder. Lämna tomt för den här anslutningens standardvärde, {default} sekunder; det lägsta som tillåts är {minimum}.\n\nKortare ger mer aktuella värden, men har ett pris: varje mätvärde som ändrats skrivs till Home Assistants databas vid varje avläsning, så databasen växer snabbare, och växelriktaren får svara på fler förfrågningar. En WiNet-S tappar förfrågningar när den tillfrågas för ofta, och entiteter blir då otillgängliga. Längre gör att värden och grafer släpar efter, och att energistyrningar reagerar senare. Inställningarna läses av var 60:e sekund oavsett, och en ändring du gör syns direkt."
         },
         "title": "Alternativ"
       }

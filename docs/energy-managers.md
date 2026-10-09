@@ -18,7 +18,7 @@ The entity IDs below are for an inverter named "Sungrow SH8.0RT-V112". Yours sta
 | Battery capacity | `sensor.sungrow_sh8_0rt_v112_battery_capacity` | kWh |
 | What the battery is doing | `select.sungrow_sh8_0rt_v112_operating_mode` | Its state is the operating mode the inverter's settings match. |
 
-Measurements are read every 10 seconds, settings every 60.
+Measurements are read every 5 seconds over the LAN port and every 10 through a WiNet-S, settings every 60. A manager that needs fresher values can have the measurements read more often; see [How often it reads](connecting.md#how-often-it-reads).
 
 ## What to control
 

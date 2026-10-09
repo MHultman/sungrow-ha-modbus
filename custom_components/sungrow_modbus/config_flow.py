@@ -29,15 +29,17 @@ import probatio
 from .const import (
     CONF_BATTERY_MAX_POWER,
     CONF_CONNECTION,
+    CONF_READINGS_INTERVAL,
     CONF_UNIT_ID,
     CONNECTION_LAN,
     CONNECTION_WINET,
     DEFAULT_PORT,
     DEFAULT_UNIT_ID,
     DOMAIN,
+    MAX_READINGS_INTERVAL,
 )
 from .entity import inverter_name
-from .helpers import apply_link_timing, create_modbus_params
+from .helpers import LinkTiming, apply_link_timing, create_modbus_params, link_timing
 from .inverter import SungrowConnectionError, SungrowError, SungrowInverter
 
 SECTION_MORE_OPTIONS = "more_options"
@@ -100,24 +102,38 @@ def _sectioned(data: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
-STEP_OPTIONS = probatio.Schema(
-    {
-        # Left empty, the battery power controls go as high as the hardware is
-        # rated for.
-        probatio.Optional(CONF_BATTERY_MAX_POWER): probatio.All(
-            NumberSelector(
-                NumberSelectorConfig(
-                    min=100,
-                    max=50000,
-                    step=100,
-                    mode=NumberSelectorMode.BOX,
-                    unit_of_measurement="W",
-                )
+def _options_schema(timing: LinkTiming) -> probatio.Schema:
+    return probatio.Schema(
+        {
+            # Left empty, the battery power controls go as high as the
+            # hardware is rated for.
+            probatio.Optional(CONF_BATTERY_MAX_POWER): probatio.All(
+                NumberSelector(
+                    NumberSelectorConfig(
+                        min=100,
+                        max=50000,
+                        step=100,
+                        mode=NumberSelectorMode.BOX,
+                        unit_of_measurement="W",
+                    )
+                ),
+                probatio.Coerce(int),
             ),
-            probatio.Coerce(int),
-        ),
-    }
-)
+            # Left empty, the connection's default applies.
+            probatio.Optional(CONF_READINGS_INTERVAL): probatio.All(
+                NumberSelector(
+                    NumberSelectorConfig(
+                        min=timing.min_readings_interval.total_seconds(),
+                        max=MAX_READINGS_INTERVAL.total_seconds(),
+                        step=1,
+                        mode=NumberSelectorMode.BOX,
+                        unit_of_measurement="s",
+                    )
+                ),
+                probatio.Coerce(int),
+            ),
+        }
+    )
 
 
 class SungrowModbusFlowHandler(ConfigFlow, domain=DOMAIN):
@@ -203,18 +219,32 @@ class SungrowModbusFlowHandler(ConfigFlow, domain=DOMAIN):
 
 
 class SungrowModbusOptionsFlow(OptionsFlowWithReload):
-    """Handle the SunGrow Modbus options: the battery power cap."""
+    """Handle the SunGrow Modbus options: battery power cap, readings interval."""
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Ask for the battery power cap; the entry reloads to apply it."""
+        """Ask for the options; the entry reloads to apply them."""
+        timing = link_timing(self.config_entry.data[CONF_CONNECTION])
+        default = timing.readings_interval.total_seconds()
         if user_input is not None:
+            # The default is left unset, so it follows the connection if that
+            # is reconfigured.
+            if user_input.get(CONF_READINGS_INTERVAL) == default:
+                user_input = {
+                    key: value
+                    for key, value in user_input.items()
+                    if key != CONF_READINGS_INTERVAL
+                }
             return self.async_create_entry(data=user_input)
 
         return self.async_show_form(
             step_id="init",
             data_schema=self.add_suggested_values_to_schema(
-                STEP_OPTIONS, self.config_entry.options
+                _options_schema(timing), self.config_entry.options
             ),
+            description_placeholders={
+                "default": f"{default:g}",
+                "minimum": f"{timing.min_readings_interval.total_seconds():g}",
+            },
         )

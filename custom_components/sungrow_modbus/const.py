@@ -20,9 +20,6 @@ CONNECTION_LAN: Final = "lan"
 DEFAULT_PORT: Final = 502
 DEFAULT_UNIT_ID: Final = 1
 
-# Local Modbus is cheap to read and PV production moves fast.
-SCAN_INTERVAL: Final = timedelta(seconds=10)
-
 # Settings only move when something writes them, so they do not need a
 # measurement's cadence. A write here refreshes them straight away.
 SETTINGS_SCAN_INTERVAL: Final = timedelta(seconds=60)
@@ -30,6 +27,11 @@ SETTINGS_SCAN_INTERVAL: Final = timedelta(seconds=60)
 # An optional cap on the battery power controls, set in the options. mkaiser's
 # guide recommends a conservative limit for the battery's health.
 CONF_BATTERY_MAX_POWER: Final = "battery_max_power"
+
+# An optional measurement interval, set in the options, in seconds. Left
+# unset, the connection's default applies.
+CONF_READINGS_INTERVAL: Final = "readings_interval"
+MAX_READINGS_INTERVAL: Final = timedelta(minutes=5)
 
 # Forces the battery to charge, discharge or idle for a while, then goes back
 # to self-consumption. For energy managers and automations.

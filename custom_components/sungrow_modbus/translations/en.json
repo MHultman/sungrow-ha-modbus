@@ -491,10 +491,12 @@
     "step": {
       "init": {
         "data": {
-          "battery_max_power": "Battery max power"
+          "battery_max_power": "Battery max power",
+          "readings_interval": "Measurement interval"
         },
         "data_description": {
-          "battery_max_power": "Caps the forced charge/discharge power and the battery max charge and discharge power controls, for example at what the battery maker recommends. Leave empty to allow up to what the inverter is rated for."
+          "battery_max_power": "Caps the forced charge/discharge power and the battery max charge and discharge power controls, for example at what the battery maker recommends. Leave empty to allow up to what the inverter is rated for.",
+          "readings_interval": "How often the measurements are read, in seconds. Leave empty for this connection's default, {default} seconds; the lowest allowed is {minimum}.\n\nShorter gives more up-to-date values, but at a cost: every measurement that changed is written to Home Assistant's database at each reading, so the database grows faster, and the inverter answers more requests. A WiNet-S drops requests when asked too often, and entities then go unavailable. Longer makes values and graphs lag behind, and energy managers react later. Settings are read every 60 seconds either way, and a change you make shows straight away."
         },
         "title": "Options"
       }

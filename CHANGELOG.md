@@ -4,7 +4,12 @@
 
 ### Added
 
+- **Measurement interval** under **Configure**: how often the measurements are read, from 2 seconds over the LAN port or 5 through a WiNet-S, up to 5 minutes. The form says what a shorter or longer interval costs; so does [How often it reads](https://github.com/MHultman/sungrow-ha-modbus/blob/main/docs/connecting.md#how-often-it-reads).
 - [Keeping your history](https://github.com/MHultman/sungrow-ha-modbus/blob/main/docs/migrating-from-yaml.md#keeping-your-history) in the migration guide: giving the new entities the YAML package's entity IDs carries on their long-term statistics and Energy dashboard history. The guide used to say this was not possible.
+
+### Changed
+
+- Over the inverter's LAN port, the measurements are read every 5 seconds instead of 10, like the YAML package's fastest values. Through a WiNet-S it stays every 10 seconds.
 
 ## 0.6.3 - 2026-10-08
 

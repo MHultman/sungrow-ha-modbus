@@ -24,7 +24,9 @@ async def test_diagnostics(
     assert diagnostics["config_entry"]["host"] == REDACTED
     assert diagnostics["identity"]["serial_number"] == REDACTED
     assert diagnostics["identity"]["model"]["name"] == "SH8.0RT-V112"
+    assert diagnostics["options"] == {}
     assert diagnostics["last_poll"]["readings"] == {
+        "interval": 10.0,
         "updated": [
             "backup_meter",
             "battery_grid",
@@ -35,6 +37,7 @@ async def test_diagnostics(
         "failed": {},
     }
     assert diagnostics["last_poll"]["settings"]["failed"] == {}
+    assert diagnostics["last_poll"]["settings"]["interval"] == 60.0
     assert diagnostics["registers"]["ems"] == {
         "space": "holding",
         "start": 13049,

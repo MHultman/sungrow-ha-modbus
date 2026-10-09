@@ -25,6 +25,7 @@ async def async_get_config_entry_diagnostics(
 
     return {
         "config_entry": async_redact_data(entry.data, TO_REDACT),
+        "options": dict(entry.options),
         "identity": async_redact_data(asdict(inverter.identity), TO_REDACT),
         "last_poll": {
             label: _last_poll(coordinator)
@@ -45,7 +46,18 @@ async def async_get_config_entry_diagnostics(
 
 
 def _last_poll(coordinator: SungrowModbusDataUpdateCoordinator) -> dict[str, Any]:
-    """Return what a coordinator's last poll refreshed, and what it did not."""
+    """Return how often a coordinator polls, and what its last poll refreshed."""
+    interval = coordinator.update_interval
+    seconds = None if interval is None else interval.total_seconds()
     if (report := coordinator.data) is None:
-        return {"updated": [], "failed": {}, "error": str(coordinator.last_exception)}
-    return {"updated": sorted(report.updated), "failed": report.failed}
+        return {
+            "interval": seconds,
+            "updated": [],
+            "failed": {},
+            "error": str(coordinator.last_exception),
+        }
+    return {
+        "interval": seconds,
+        "updated": sorted(report.updated),
+        "failed": report.failed,
+    }

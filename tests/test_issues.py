@@ -11,7 +11,8 @@ from pytest_homeassistant_custom_component.common import (
     async_fire_time_changed,
 )
 
-from custom_components.sungrow_modbus.const import DOMAIN, SCAN_INTERVAL
+from custom_components.sungrow_modbus.const import DOMAIN
+from custom_components.sungrow_modbus.helpers import WINET_TIMING
 from custom_components.sungrow_modbus.issues import REFUSALS_BEFORE_ISSUE
 
 from .conftest import seed_inverter
@@ -26,7 +27,7 @@ async def _setup(hass: HomeAssistant, entry: MockConfigEntry) -> None:
 
 
 async def _poll(hass: HomeAssistant, freezer: FrozenDateTimeFactory) -> None:
-    freezer.tick(SCAN_INTERVAL)
+    freezer.tick(WINET_TIMING.readings_interval)
     async_fire_time_changed(hass)
     await hass.async_block_till_done()
 

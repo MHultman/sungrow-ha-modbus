@@ -22,7 +22,6 @@ from .const import (
     CONF_UNIT_ID,
     DOMAIN,
     LOGGER,
-    SCAN_INTERVAL,
     SETTINGS_SCAN_INTERVAL,
 )
 from .coordinator import (
@@ -31,7 +30,7 @@ from .coordinator import (
     SungrowModbusRuntimeData,
 )
 from .entity import inverter_device_info
-from .helpers import apply_link_timing, create_modbus_params
+from .helpers import apply_link_timing, create_modbus_params, readings_interval
 from .inverter import SungrowConnectionError, SungrowError, SungrowInverter
 from .issues import RefusedBlocks, async_clear_issues, async_raise_unknown_model
 from .services import async_setup_services
@@ -111,7 +110,7 @@ async def async_setup_entry(
         entry,
         inverter,
         blocks=inverter.reading_blocks,
-        interval=SCAN_INTERVAL,
+        interval=readings_interval(entry.data, entry.options),
         refused=refused,
     )
     settings = SungrowModbusDataUpdateCoordinator(

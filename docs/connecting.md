@@ -20,8 +20,21 @@ The connection choice in the setup form changes how patient the integration is:
 | Gap between requests | 5 ms | 30 ms |
 | Timeout per request | 10 s | 30 s |
 | Wait after connecting | none | 15 s |
+| Measurements read every | 5 s | 10 s |
 
 So setting up through a WiNet-S takes about 15 seconds, and so does reconnecting after the link drops.
+
+## How often it reads
+
+The measurements (power, energy, battery level and the rest) are read every 5 seconds over the LAN port and every 10 seconds through a WiNet-S, in a handful of block reads each time. The settings behind the controls are read every 60 seconds, and a change you make shows straight away.
+
+To change how often the measurements are read, open **Configure** on the integration and set **Measurement interval**, from 2 seconds over the LAN port or 5 through a WiNet-S, up to 5 minutes. Leave it empty for the default; the default also follows the connection if you reconfigure it. Before you shorten it:
+
+- **The database grows faster.** Home Assistant writes every measurement that changed at each reading, and power values change at almost every one. Halving the interval roughly doubles what is written, which adds up over the months the recorder keeps.
+- **The inverter answers more requests.** The LAN port copes with that easily. A WiNet-S does not: asked too often, it drops requests, and entities go unavailable. If they do, lengthen the interval.
+- **It may not get you fresher values.** How often Sungrow updates the registers inside the inverter is not documented; reading faster than that only repeats the same values.
+
+A longer interval goes the other way: a smaller database and a quieter link, but values and graphs lag behind, and energy managers and automations react later. The Energy dashboard does not need fast readings: it works from the energy counters, which are exact at any interval.
 
 ## Enabling the LAN port
 

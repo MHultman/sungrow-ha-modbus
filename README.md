@@ -40,7 +40,7 @@ It is not affiliated with, endorsed by or supported by Sungrow. See also the [li
 
 Connecting through a WiNet-S takes about 15 seconds: the dongle drops requests that arrive right after a connection opens, so the integration waits before its first one.
 
-To cap the battery power controls at what your battery should take, open **Configure** on the integration afterwards; see [Capping the battery power](docs/controls.md#capping-the-battery-power).
+Under **Configure** on the integration you can cap the battery power controls at what your battery should take (see [Capping the battery power](docs/controls.md#capping-the-battery-power)), and change how often the measurements are read (see [How often it reads](docs/connecting.md#how-often-it-reads)).
 
 ## What you get
 
@@ -59,7 +59,7 @@ An inverter set up read-only, and registers the inverter keeps refusing, show up
 
 ## How it works
 
-Measurements are read every 10 seconds and settings every 60, in blocks of registers rather than one request per value. A block the inverter refuses makes only its own entities unavailable. If one request goes unanswered, which the WiNet-S does now and then, the poll is retried once before the entities go unavailable.
+Measurements are read every 5 seconds over the LAN port and every 10 through a WiNet-S, and settings every 60, in blocks of registers rather than one request per value. A block the inverter refuses makes only its own entities unavailable. If one request goes unanswered, which the WiNet-S does now and then, the poll is retried once before the entities go unavailable.
 
 Nothing is ever written to the inverter unless you use a control.
 

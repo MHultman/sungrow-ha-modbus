@@ -26,8 +26,9 @@ Disabled entities (like the meter values and the per-phase backup power) are dis
 
 ## Everything goes unavailable now and then
 
-The link dropped for longer than one retry. The integration polls again every 10 seconds and recovers by itself. If it happens often on a WiNet-S:
+The link dropped for longer than one retry. The integration reads again at the next interval and recovers by itself. If it happens often on a WiNet-S:
 
+- If you shortened the **Measurement interval** under **Configure**, lengthen it again, or empty it for the default of 10 seconds. See [How often it reads](connecting.md#how-often-it-reads).
 - Make sure **Connected through** is set to **WiNet-S dongle**: it gives the dongle more time.
 - Use the inverter's own LAN port instead, if it has one.
 - Update the WiNet-S firmware: recent versions are much better at Modbus.

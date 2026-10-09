@@ -1,9 +1,11 @@
 """Tests for the SunGrow Modbus config flow."""
 
+from datetime import timedelta
+
 from homeassistant.config_entries import SOURCE_USER
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
-from homeassistant.data_entry_flow import FlowResultType
+from homeassistant.data_entry_flow import FlowResultType, InvalidData
 from modbus_connection import IllegalDataAddressError, ModbusConnectionError
 from modbus_connection.mock import MockModbusUnit
 import pytest
@@ -12,6 +14,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.sungrow_modbus.const import (
     CONF_BATTERY_MAX_POWER,
     CONF_CONNECTION,
+    CONF_READINGS_INTERVAL,
     CONF_UNIT_ID,
     CONNECTION_LAN,
     CONNECTION_WINET,
@@ -183,3 +186,46 @@ async def test_options_flow(
 
     assert init_integration.options == {}
     assert hass.states.get(number).attributes["max"] == 10600
+
+
+async def test_options_readings_interval(
+    hass: HomeAssistant, init_integration: MockConfigEntry
+) -> None:
+    """Test the measurement interval, shown with the connection's own limits."""
+    result = await hass.config_entries.options.async_init(init_integration.entry_id)
+    assert result["description_placeholders"] == {"default": "10", "minimum": "5"}
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {CONF_READINGS_INTERVAL: 30}
+    )
+    await hass.async_block_till_done()
+
+    assert init_integration.options == {CONF_READINGS_INTERVAL: 30}
+    assert init_integration.runtime_data.readings.update_interval == timedelta(
+        seconds=30
+    )
+
+
+async def test_options_readings_interval_default_left_unset(
+    hass: HomeAssistant, init_integration: MockConfigEntry
+) -> None:
+    """Test the default is not stored, so it follows a reconfigured connection."""
+    result = await hass.config_entries.options.async_init(init_integration.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {CONF_READINGS_INTERVAL: 10}
+    )
+    await hass.async_block_till_done()
+
+    assert init_integration.options == {}
+
+
+async def test_options_readings_interval_below_minimum(
+    hass: HomeAssistant, init_integration: MockConfigEntry
+) -> None:
+    """Test a WiNet-S cannot be polled faster than it keeps up with."""
+    result = await hass.config_entries.options.async_init(init_integration.entry_id)
+
+    with pytest.raises(InvalidData):
+        await hass.config_entries.options.async_configure(
+            result["flow_id"], {CONF_READINGS_INTERVAL: 3}
+        )
