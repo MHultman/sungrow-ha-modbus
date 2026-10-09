@@ -4,7 +4,7 @@
 
 ### Changed
 
-- A new icon: an S in a sun.
+- A new icon: the S from Sungrow's wordmark, in its orange.
 
 ## 0.7.1 - 2026-10-09
 
