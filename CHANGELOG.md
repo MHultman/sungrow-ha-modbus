@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- [More than one inverter](https://github.com/MHultman/sungrow-ha-modbus/blob/main/docs/connecting.md#more-than-one-inverter) now says how to tell two inverters of the same model apart: rename each one right after adding it, entity IDs included. The migration guide covers the YAML package's multiple-inverter files and their totals.
+
 ## 0.7.0 - 2026-10-09
 
 ### Added

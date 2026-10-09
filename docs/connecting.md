@@ -66,6 +66,13 @@ If several programs need the inverter, put a Modbus proxy in front of it, such a
 
 ## More than one inverter
 
-Add the integration once per inverter. Each gets its own device, named after its model, and its own entities. Inverters behind the same address with different device IDs share one connection.
+Add the integration once per inverter. Each gets its own device, named after its model, and its own entities. Inverters behind the same address with different device IDs share one connection. Each has its own settings under **Configure**, and its own repair notices.
+
+**Name each inverter right after adding it**, before any automation or dashboard uses its entities. Two inverters of the same model both start out as, for example, "Sungrow SH10RT", and the second one's entity IDs get `_2` at the end: `sensor.sungrow_sh10rt_battery_level` and `sensor.sungrow_sh10rt_battery_level_2`. To tell them apart:
+
+1. Open the second inverter's device page, and rename it with the pencil, for example to "Sungrow garage".
+2. Home Assistant asks whether to rename the entity IDs too. Say yes, so they start with the new name, like `sensor.sungrow_garage_battery_level`. If some still end in `_2`, change those in the entity's settings.
+
+The [Force battery](energy-managers.md#force-battery) action needs `config_entry_id` once there is more than one inverter, to say which one to force.
 
 To add up values across inverters, for example total PV power, use Home Assistant's **Combine the state of several sensors** helper (Settings → Devices & services → Helpers), set to *Sum*.

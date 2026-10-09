@@ -167,4 +167,5 @@ Two differ in more than their name:
 | `switch.sungrow_dashboard_enable_danger_mode` and its automation | None; see [Controls](controls.md#left-out-on-purpose). |
 | Active power limitation and APL shutdown at zero | Left out; see [Controls](controls.md#left-out-on-purpose). |
 | The scenes | The **Operating mode** and **Export mode** selects; see [Controls](controls.md#operating-mode-and-export-mode). |
-| The multiple-inverter YAML files | Add the integration once per inverter; see [More than one inverter](connecting.md#more-than-one-inverter). |
+| The multiple-inverter YAML files | Add the integration once per inverter; see [More than one inverter](connecting.md#more-than-one-inverter). To keep the history, rename each inverter's entities to their `_inv_1`, `_inv_2` … IDs, as in [Keeping your history](#keeping-your-history). |
+| `multiple_inverter_aggregate_sensors.yaml` | Home Assistant's **Combine the state of several sensors** helper; see [More than one inverter](connecting.md#more-than-one-inverter). |

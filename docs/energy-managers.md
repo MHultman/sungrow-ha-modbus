@@ -50,7 +50,7 @@ Do not use the EMS modes **External EMS** or **VPP**: they hand the inverter to 
 | `mode` | yes | `charge` (from PV, and from the grid if PV is not enough), `discharge` or `idle` |
 | `duration` | yes | 1 minute to 24 hours |
 | `power` | no | W. Left out, the forced power already set is used. Not used for `idle`. It cannot be above the **Battery forced charge/discharge power** maximum, which includes your [battery power cap](controls.md#capping-the-battery-power). |
-| `config_entry_id` | with more than one inverter | The inverter to force |
+| `config_entry_id` | with more than one inverter | The inverter to force. The action editor lets you pick it from a list; switch to YAML afterwards to see its ID. |
 
 ```yaml
 action: sungrow_modbus.force_battery

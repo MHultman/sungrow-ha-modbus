@@ -59,7 +59,11 @@ def _i16(value: int) -> int:
     return value & 0xFFFF
 
 
-def seed_inverter(unit: MockModbusUnit, device_type_code: int = SH8_0RT_V112) -> None:
+def seed_inverter(
+    unit: MockModbusUnit,
+    device_type_code: int = SH8_0RT_V112,
+    serial_number: str = SERIAL_NUMBER,
+) -> None:
     """Seed a unit with a Sungrow hybrid on a sunny afternoon.
 
     The PV strings make about 3.4 kW, the battery charges at 1.2 kW, the house
@@ -70,7 +74,7 @@ def seed_inverter(unit: MockModbusUnit, device_type_code: int = SH8_0RT_V112) ->
         {
             4953: _string("ARM_SAPPHIRE-H_V11_V01_B", 15),
             4968: _string("MDSP_SAPPHIRE-H_V11_V01_B", 15),
-            4989: _string(SERIAL_NUMBER, 10),
+            4989: _string(serial_number, 10),
             4999: device_type_code,
             5000: 80,  # rated output, 8000 W
             5002: 123,  # daily output, 12.3 kWh
