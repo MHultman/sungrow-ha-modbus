@@ -59,8 +59,9 @@ class SungrowModbusDataUpdateCoordinator(TimestampDataUpdateCoordinator[PollRepo
     @override
     async def _async_update_data(self) -> PollReport:
         """Poll the inverter, reporting what answered."""
+        blocks = self._blocks_to_poll()
         try:
-            report = await self._async_poll_with_retry()
+            report = await self._async_poll_with_retry(blocks)
         except SungrowConnectionError as err:
             raise UpdateFailed(
                 translation_domain=DOMAIN,
@@ -72,18 +73,31 @@ class SungrowModbusDataUpdateCoordinator(TimestampDataUpdateCoordinator[PollRepo
         self._refused.record(report)
         return report
 
-    async def _async_poll_with_retry(self) -> PollReport:
+    def _blocks_to_poll(self) -> tuple[Block, ...]:
+        """Return the blocks an enabled entity reads.
+
+        Each entity listens with the blocks it reads. A block whose entities
+        are all disabled is not read at all, so one the inverter does not
+        serve stops being asked for. At setup, before any entity listens,
+        every block is read.
+        """
+        if not self._listeners:
+            return self.blocks
+        wanted = {block for blocks in self.async_contexts() for block in blocks}
+        return tuple(block for block in self.blocks if block in wanted)
+
+    async def _async_poll_with_retry(self, blocks: tuple[Block, ...]) -> PollReport:
         """Poll, giving a link that dropped one request a second chance.
 
         The WiNet-S misses a request now and then. Blanking every entity for a
         whole interval over one of those would leave gaps in every graph.
         """
         try:
-            return await self.inverter.async_update(self.blocks)
+            return await self.inverter.async_update(blocks)
         except SungrowConnectionError as err:
             LOGGER.debug("%s: nothing answered (%s); polling again", self.name, err)
 
-        return await self.inverter.async_update(self.blocks)
+        return await self.inverter.async_update(blocks)
 
     def _log_silence(self, report: PollReport) -> None:
         """Log a block falling silent once, and log its return."""

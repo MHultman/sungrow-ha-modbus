@@ -552,7 +552,17 @@
   "issues": {
     "refused_registers": {
       "title": "{inverter} svarar inte på vissa register",
-      "description": "Växelriktaren har vägrat svara för de här registren vid varje avläsning i rad: {blocks}. Entiteterna som läses från dem visar inget aktuellt värde.\n\nOftast har modellen eller dess firmware inte dem. Du kan inaktivera de entiteterna eller ignorera det här. Om din växelriktare borde ha dem, öppna ett ärende på GitHub och bifoga diagnostiken."
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Inaktivera entiteter utan värde",
+            "description": "Växelriktaren har vägrat svara för de här registren vid varje avläsning i rad: {blocks}. Oftast har modellen eller dess firmware inte dem, så entiteterna som läses från dem får aldrig något värde:\n\n{entities}\n\n**Skicka** inaktiverar entiteterna, och deras register läses inte längre av. Du kan aktivera dem igen i deras entitetsinställningar. Om din växelriktare borde ha dem, öppna i stället ett ärende på GitHub och bifoga diagnostiken."
+          }
+        },
+        "abort": {
+          "already_disabled": "Entiteterna som läses från de här registren är redan inaktiverade."
+        }
+      }
     },
     "unknown_model": {
       "title": "{inverter} är konfigurerad som skrivskyddad",

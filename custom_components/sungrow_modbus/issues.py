@@ -97,7 +97,12 @@ class RefusedBlocks:
             self._hass,
             DOMAIN,
             _refused_registers_id(self._entry),
-            is_fixable=False,
+            # The fix disables the entities read from the blocks; see repairs.py.
+            is_fixable=True,
+            data={
+                "entry_id": self._entry.entry_id,
+                "blocks": ",".join(sorted(refused)),
+            },
             severity=ir.IssueSeverity.WARNING,
             translation_key="refused_registers",
             translation_placeholders={

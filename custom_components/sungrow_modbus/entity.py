@@ -63,8 +63,11 @@ class SungrowModbusEntity(CoordinatorEntity[SungrowModbusDataUpdateCoordinator])
     ) -> None:
         """Initialize a SunGrow Modbus entity."""
         self._runtime_data = entry.runtime_data
+        # Listening with the blocks it reads tells the coordinator to keep
+        # reading them, while the entity is enabled.
         super().__init__(
-            coordinator=self._runtime_data.coordinator_for(description.blocks)
+            coordinator=self._runtime_data.coordinator_for(description.blocks),
+            context=description.blocks,
         )
         self.entity_description = description
 

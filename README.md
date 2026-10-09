@@ -59,7 +59,7 @@ An inverter set up read-only, and registers the inverter keeps refusing, show up
 
 ## How it works
 
-Measurements are read every 5 seconds over the LAN port and every 10 through a WiNet-S, and settings every 60, in blocks of registers rather than one request per value. If one request goes unanswered, which the WiNet-S does now and then, the poll is retried once. When the inverter does not answer, the entities keep the last value read rather than go unavailable; **Connected** turns off, and **Last reading** says when the values were read. To have entities go unavailable instead, turn on **Show as unavailable when the inverter does not answer** under **Configure**; see [When the inverter does not answer](docs/troubleshooting.md#when-the-inverter-does-not-answer).
+Measurements are read every 5 seconds over the LAN port and every 10 through a WiNet-S, and settings every 60, in blocks of registers rather than one request per value. A block whose entities are all disabled is not read at all. If one request goes unanswered, which the WiNet-S does now and then, the poll is retried once. When the inverter does not answer, the entities keep the last value read rather than go unavailable; **Connected** turns off, and **Last reading** says when the values were read. To have entities go unavailable instead, turn on **Show as unavailable when the inverter does not answer** under **Configure**; see [When the inverter does not answer](docs/troubleshooting.md#when-the-inverter-does-not-answer).
 
 Nothing is ever written to the inverter unless you use a control.
 

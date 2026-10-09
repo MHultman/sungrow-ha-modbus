@@ -552,7 +552,17 @@
   "issues": {
     "refused_registers": {
       "title": "{inverter} does not serve some registers",
-      "description": "The inverter has refused to answer for these registers on every poll in a row: {blocks}. The entities read from them show no current value.\n\nUsually the model or its firmware does not have them. You can disable those entities, or ignore this. If your inverter should have them, open an issue on GitHub with the diagnostics attached."
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Disable entities without a value",
+            "description": "The inverter has refused to answer for these registers on every reading in a row: {blocks}. Usually the model or its firmware does not have them, so the entities read from them never get a value:\n\n{entities}\n\n**Submit** disables these entities, and their registers are no longer read. You can enable any of them again in its entity settings. If your inverter should have them, open an issue on GitHub with the diagnostics attached instead."
+          }
+        },
+        "abort": {
+          "already_disabled": "The entities read from these registers are already disabled."
+        }
+      }
     },
     "unknown_model": {
       "title": "{inverter} is set up read-only",
