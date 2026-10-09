@@ -10,7 +10,7 @@ The integration is for Sungrow's **SH hybrid inverters**: the ones with a batter
 |---|---|---|---|---|
 | **SH-RT** | SH5.0RT to SH10RT, and their -20, -V112 and -V122 versions | 3 | 2 | The best covered family, and the only one with the charge/discharge start power controls. |
 | **SH-T** | SH5T to SH25T | 3 | 3 | MPPT 3 entities. |
-| **SH-RS** | SH3.0RS to SH10RS | 1 | 2, or 4 on SH8.0RS and SH10RS | Serve a smaller set of registers than the RT models, so expect some entities to stay unavailable. No start power controls (the registers are not there). |
+| **SH-RS** | SH3.0RS to SH10RS | 1 | 2, or 4 on SH8.0RS and SH10RS | Serve a smaller set of registers than the RT models, so expect some entities never to get a value. No start power controls (the registers are not there). |
 | **SH-K** | SH3K6 to SH5K, and their -20 and -30 versions | 1 | 2 | The first generation. Little feedback so far. |
 | **MG** | MG5RL, MG6RL | 1 | 2 | Little feedback so far. |
 

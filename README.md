@@ -20,7 +20,7 @@ It is not affiliated with, endorsed by or supported by Sungrow. See also the [li
 - [Controls](docs/controls.md): what each control does, the EMS modes, capping the battery power
 - [Energy dashboard](docs/energy-dashboard.md): which sensor goes where
 - [Energy managers and automations](docs/energy-managers.md): driving the inverter from EMHASS, Predbat, evcc or your own automations, and the Force battery action
-- [Troubleshooting](docs/troubleshooting.md): connection problems, unavailable entities, diagnostics, logs
+- [Troubleshooting](docs/troubleshooting.md): connection problems, values that do not update, diagnostics, logs
 - [Testing on your inverter](docs/testing.md): a checklist from readings to every control, and how to send a model report
 - [Changelog](CHANGELOG.md)
 
@@ -46,8 +46,8 @@ Under **Configure** on the integration you can cap the battery power controls at
 
 One device for the inverter, named after the model it reports, such as "Sungrow SH8.0RT-V112", with:
 
-- **Sensors**: running state, PV per MPPT, AC per phase, grid, house load, battery, backup output, smart meter values (disabled by default), daily and lifetime energy counters, and the battery level and charge relative to the SoC limits.
-- **Binary sensors**: PV generating, battery charging and discharging, exporting and importing, from the inverter's power flow status.
+- **Sensors**: running state, PV per MPPT, AC per phase, grid, house load, battery, backup output, smart meter values (disabled by default), daily and lifetime energy counters, the battery level and charge relative to the SoC limits, and **Last reading**, when the values were read.
+- **Binary sensors**: PV generating, battery charging and discharging, exporting and importing, from the inverter's power flow status, and **Connected**, for whether the values shown are current.
 - **Controls**: an **Operating mode** select (self-consumption, without discharging, battery bypass, forced charge, forced discharge) and an **Export mode** select (no limit, zero export, limited) that set everything in one pick, plus the separate settings behind them; see [Controls](docs/controls.md).
 - **A Force battery action** that charges, discharges or idles the battery for a set time, then goes back to self-consumption by itself; see [Energy managers and automations](docs/energy-managers.md).
 
@@ -59,7 +59,7 @@ An inverter set up read-only, and registers the inverter keeps refusing, show up
 
 ## How it works
 
-Measurements are read every 5 seconds over the LAN port and every 10 through a WiNet-S, and settings every 60, in blocks of registers rather than one request per value. A block the inverter refuses makes only its own entities unavailable. If one request goes unanswered, which the WiNet-S does now and then, the poll is retried once before the entities go unavailable.
+Measurements are read every 5 seconds over the LAN port and every 10 through a WiNet-S, and settings every 60, in blocks of registers rather than one request per value. If one request goes unanswered, which the WiNet-S does now and then, the poll is retried once. When the inverter does not answer, the entities keep the last value read rather than go unavailable; **Connected** turns off, and **Last reading** says when the values were read. To have entities go unavailable instead, turn on **Show as unavailable when the inverter does not answer** under **Configure**; see [When the inverter does not answer](docs/troubleshooting.md#when-the-inverter-does-not-answer).
 
 Nothing is ever written to the inverter unless you use a control.
 

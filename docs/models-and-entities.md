@@ -59,6 +59,7 @@ in common and where they differ.
 
 | Name | Unit | Off by default | K | RS | RT | T | MG |
 |---|---|---|---|---|---|---|---|
+| Last reading |  |  | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Running state |  |  | ✓ | ✓ | ✓ | ✓ | ✓ |
 | MPPT1 voltage | V |  | ✓ | ✓ | ✓ | ✓ | ✓ |
 | MPPT1 current | A |  | ✓ | ✓ | ✓ | ✓ | ✓ |
@@ -149,6 +150,7 @@ in common and where they differ.
 
 | Name | Unit | Off by default | K | RS | RT | T | MG |
 |---|---|---|---|---|---|---|---|
+| Connected |  |  | ✓ | ✓ | ✓ | ✓ | ✓ |
 | PV generating |  |  | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Battery charging |  |  | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Battery discharging |  |  | ✓ | ✓ | ✓ | ✓ | ✓ |

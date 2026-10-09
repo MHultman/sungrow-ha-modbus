@@ -62,6 +62,9 @@
   },
   "entity": {
     "binary_sensor": {
+      "connected": {
+        "name": "Connected"
+      },
       "battery_charging": {
         "name": "Battery charging"
       },
@@ -168,6 +171,9 @@
       }
     },
     "sensor": {
+      "last_reading": {
+        "name": "Last reading"
+      },
       "backup_phase_a_power": {
         "name": "Backup phase A power"
       },
@@ -492,11 +498,13 @@
       "init": {
         "data": {
           "battery_max_power": "Battery max power",
-          "readings_interval": "Measurement interval"
+          "readings_interval": "Measurement interval",
+          "show_unavailable": "Show as unavailable when the inverter does not answer"
         },
         "data_description": {
           "battery_max_power": "Caps the forced charge/discharge power and the battery max charge and discharge power controls, for example at what the battery maker recommends. Leave empty to allow up to what the inverter is rated for.",
-          "readings_interval": "How often the measurements are read, in seconds. Leave empty for this connection's default, {default} seconds; the lowest allowed is {minimum}.\n\nShorter gives more up-to-date values, but at a cost: every measurement that changed is written to Home Assistant's database at each reading, so the database grows faster, and the inverter answers more requests. A WiNet-S drops requests when asked too often, and entities then go unavailable. Longer makes values and graphs lag behind, and energy managers react later. Settings are read every 60 seconds either way, and a change you make shows straight away."
+          "readings_interval": "How often the measurements are read, in seconds. Leave empty for this connection's default, {default} seconds; the lowest allowed is {minimum}.\n\nShorter gives more up-to-date values, but at a cost: every measurement that changed is written to Home Assistant's database at each reading, so the database grows faster, and the inverter answers more requests. A WiNet-S drops requests when asked too often, and entities then go unavailable. Longer makes values and graphs lag behind, and energy managers react later. Settings are read every 60 seconds either way, and a change you make shows straight away.",
+          "show_unavailable": "Off (the default): every entity keeps the last value read while the inverter does not answer, so nothing goes unavailable. The values may be out of date then: **Connected** turns off and **Last reading** says when they were read, so check those before acting on a value in an automation.\n\nOn: entities go unavailable while their values are not current, and come back with the next answer. Graphs show a gap instead of a flat line."
         },
         "title": "Options"
       }
@@ -544,7 +552,7 @@
   "issues": {
     "refused_registers": {
       "title": "{inverter} does not serve some registers",
-      "description": "The inverter has refused to answer for these registers on every poll in a row: {blocks}. The entities read from them stay unavailable.\n\nUsually the model or its firmware does not have them. You can disable those entities, or ignore this. If your inverter should have them, open an issue on GitHub with the diagnostics attached."
+      "description": "The inverter has refused to answer for these registers on every poll in a row: {blocks}. The entities read from them show no current value.\n\nUsually the model or its firmware does not have them. You can disable those entities, or ignore this. If your inverter should have them, open an issue on GitHub with the diagnostics attached."
     },
     "unknown_model": {
       "title": "{inverter} is set up read-only",

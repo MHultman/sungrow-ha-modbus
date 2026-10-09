@@ -503,7 +503,9 @@ class SungrowModbusOperatingModeSelectEntity(SungrowModbusPresetSelectEntity):
 
     async def _async_end_forced(self, forced: ForcedMode, _now: datetime) -> None:
         self._cancel_end = None
-        if not self.available:
+        # The settings the end is decided on have to be current, whatever the
+        # entity shows.
+        if not self._is_current():
             self._retry_end(forced, "its settings are not being read")
             return
         if self.current_option == forced.option:

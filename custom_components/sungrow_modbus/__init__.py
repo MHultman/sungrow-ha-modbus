@@ -19,6 +19,7 @@ from homeassistant.helpers.typing import ConfigType
 from .const import (
     CONF_BATTERY_MAX_POWER,
     CONF_CONNECTION,
+    CONF_SHOW_UNAVAILABLE,
     CONF_UNIT_ID,
     DOMAIN,
     LOGGER,
@@ -132,6 +133,7 @@ async def async_setup_entry(
         settings=settings,
         device_info=inverter_device_info(inverter.identity),
         battery_max_power=entry.options.get(CONF_BATTERY_MAX_POWER),
+        show_unavailable=entry.options.get(CONF_SHOW_UNAVAILABLE, False),
     )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)

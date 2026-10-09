@@ -31,6 +31,10 @@ CONF_BATTERY_MAX_POWER: Final = "battery_max_power"
 # An optional measurement interval, set in the options, in seconds. Left
 # unset, the connection's default applies.
 CONF_READINGS_INTERVAL: Final = "readings_interval"
+
+# Whether entities go unavailable while the inverter does not answer, set in
+# the options. By default they keep the last value read.
+CONF_SHOW_UNAVAILABLE: Final = "show_unavailable"
 MAX_READINGS_INTERVAL: Final = timedelta(minutes=5)
 
 # Forces the battery to charge, discharge or idle for a while, then goes back

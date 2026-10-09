@@ -16,6 +16,7 @@ from homeassistant.core import callback
 from homeassistant.data_entry_flow import section
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.selector import (
+    BooleanSelector,
     NumberSelector,
     NumberSelectorConfig,
     NumberSelectorMode,
@@ -30,6 +31,7 @@ from .const import (
     CONF_BATTERY_MAX_POWER,
     CONF_CONNECTION,
     CONF_READINGS_INTERVAL,
+    CONF_SHOW_UNAVAILABLE,
     CONF_UNIT_ID,
     CONNECTION_LAN,
     CONNECTION_WINET,
@@ -132,6 +134,7 @@ def _options_schema(timing: LinkTiming) -> probatio.Schema:
                 ),
                 probatio.Coerce(int),
             ),
+            probatio.Optional(CONF_SHOW_UNAVAILABLE, default=False): BooleanSelector(),
         }
     )
 
@@ -219,7 +222,11 @@ class SungrowModbusFlowHandler(ConfigFlow, domain=DOMAIN):
 
 
 class SungrowModbusOptionsFlow(OptionsFlowWithReload):
-    """Handle the SunGrow Modbus options: battery power cap, readings interval."""
+    """Handle the SunGrow Modbus options.
+
+    The battery power cap, how often measurements are read, and whether
+    entities go unavailable while the inverter does not answer.
+    """
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -228,15 +235,16 @@ class SungrowModbusOptionsFlow(OptionsFlowWithReload):
         timing = link_timing(self.config_entry.data[CONF_CONNECTION])
         default = timing.readings_interval.total_seconds()
         if user_input is not None:
-            # The default is left unset, so it follows the connection if that
-            # is reconfigured.
-            if user_input.get(CONF_READINGS_INTERVAL) == default:
-                user_input = {
+            # Defaults are left unset, so the interval follows the connection
+            # if that is reconfigured.
+            defaults = {CONF_READINGS_INTERVAL: default, CONF_SHOW_UNAVAILABLE: False}
+            return self.async_create_entry(
+                data={
                     key: value
                     for key, value in user_input.items()
-                    if key != CONF_READINGS_INTERVAL
+                    if key not in defaults or value != defaults[key]
                 }
-            return self.async_create_entry(data=user_input)
+            )
 
         return self.async_show_form(
             step_id="init",

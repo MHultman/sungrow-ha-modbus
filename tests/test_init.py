@@ -1,10 +1,11 @@
 """Tests for setting up and polling the SunGrow Modbus integration."""
 
 from datetime import timedelta
+from typing import Any
 
 from freezegun.api import FrozenDateTimeFactory
 from homeassistant.config_entries import ConfigEntryState
-from homeassistant.const import STATE_UNAVAILABLE
+from homeassistant.const import STATE_OFF, STATE_ON, STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr, entity_registry as er
 from modbus_connection import (
@@ -22,6 +23,7 @@ from pytest_homeassistant_custom_component.common import (
 from custom_components.sungrow_modbus.const import (
     CONF_CONNECTION,
     CONF_READINGS_INTERVAL,
+    CONF_SHOW_UNAVAILABLE,
     CONNECTION_LAN,
     CONNECTION_WINET,
     DOMAIN,
@@ -119,44 +121,78 @@ async def test_poll_retries_a_missed_request(
     )
 
 
-@pytest.mark.usefixtures("init_integration")
+async def _async_setup(hass: HomeAssistant, options: dict[str, Any]) -> MockConfigEntry:
+    entry = MockConfigEntry(
+        domain=DOMAIN, unique_id=SERIAL_NUMBER, data=entry_data(), options=options
+    )
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    return entry
+
+
+# Off by default: the last value read stays up.
+SHOWN = pytest.mark.parametrize(
+    ("options", "while_down"),
+    [({}, None), ({CONF_SHOW_UNAVAILABLE: True}, STATE_UNAVAILABLE)],
+)
+
+
+@SHOWN
 async def test_poll_link_down_and_back(
     hass: HomeAssistant,
     mock_modbus_unit: MockModbusUnit,
     freezer: FrozenDateTimeFactory,
+    options: dict[str, Any],
+    while_down: str | None,
 ) -> None:
-    """Test every entity goes unavailable while the link is down, and returns."""
+    """Test what entities show while the link is down, and that they return.
+
+    Connected and Last reading say whether the values are current either way.
+    """
     entity_id = "sensor.sungrow_sh8_0rt_v112_battery_level"
+    connected = "binary_sensor.sungrow_sh8_0rt_v112_connected"
+    last_reading = "sensor.sungrow_sh8_0rt_v112_last_reading"
+    await _async_setup(hass, options)
+    read_at = hass.states.get(last_reading).state
+    assert hass.states.get(connected).state == STATE_ON
 
     mock_modbus_unit.fail_requests(ModbusConnectionError("gone"))
     await _async_poll(hass, freezer)
-    assert hass.states.get(entity_id).state == STATE_UNAVAILABLE
+    assert hass.states.get(entity_id).state == (while_down or "65.4")
+    assert hass.states.get(connected).state == STATE_OFF
+    assert hass.states.get(last_reading).state == read_at
 
     mock_modbus_unit.fail_requests(None)
     await _async_poll(hass, freezer)
     assert hass.states.get(entity_id).state == "65.4"
+    assert hass.states.get(connected).state == STATE_ON
+    assert hass.states.get(last_reading).state != read_at
 
 
-@pytest.mark.usefixtures("init_integration")
+@SHOWN
 async def test_poll_block_refused(
     hass: HomeAssistant,
     mock_modbus_unit: MockModbusUnit,
     freezer: FrozenDateTimeFactory,
     caplog: pytest.LogCaptureFixture,
+    options: dict[str, Any],
+    while_down: str | None,
 ) -> None:
-    """Test a refused block only takes its own entities down."""
+    """Test a refused block only touches its own entities."""
+    voltage = "sensor.sungrow_sh8_0rt_v112_phase_a_voltage"
+    # Phase power needs the voltage too, so it goes with it.
+    power = "sensor.sungrow_sh8_0rt_v112_phase_a_power"
+    await _async_setup(hass, options)
+    before = {
+        entity_id: hass.states.get(entity_id).state for entity_id in (voltage, power)
+    }
+
     mock_modbus_unit.fail_read(5002, IllegalDataAddressError(), register_type="input")
     await _async_poll(hass, freezer)
 
-    assert (
-        hass.states.get("sensor.sungrow_sh8_0rt_v112_phase_a_voltage").state
-        == STATE_UNAVAILABLE
-    )
-    # Phase power needs the voltage too, so it goes with it.
-    assert (
-        hass.states.get("sensor.sungrow_sh8_0rt_v112_phase_a_power").state
-        == STATE_UNAVAILABLE
-    )
+    for entity_id in (voltage, power):
+        assert hass.states.get(entity_id).state == (while_down or before[entity_id])
     assert hass.states.get("sensor.sungrow_sh8_0rt_v112_battery_level").state == "65.4"
     assert "the inverter registers did not answer" in caplog.text
 
@@ -169,30 +205,33 @@ async def test_poll_block_refused(
     assert "the inverter registers are answering again" in caplog.text
 
 
+@SHOWN
 async def test_setup_settings_refused(
     hass: HomeAssistant,
-    mock_config_entry: MockConfigEntry,
     mock_modbus_unit: MockModbusUnit,
+    options: dict[str, Any],
+    while_down: str | None,
 ) -> None:
-    """Test settings the inverter refuses take only their own controls down."""
+    """Test settings the inverter refuses touch only their own controls.
+
+    Never read, they have no last value to keep.
+    """
     mock_modbus_unit.fail_read(13049, IllegalDataAddressError())
-    mock_config_entry.add_to_hass(hass)
+    entry = await _async_setup(hass, options)
 
-    await hass.config_entries.async_setup(mock_config_entry.entry_id)
-    await hass.async_block_till_done()
-
-    assert mock_config_entry.state is ConfigEntryState.LOADED
-    assert (
-        hass.states.get("select.sungrow_sh8_0rt_v112_ems_mode").state
-        == STATE_UNAVAILABLE
+    assert entry.state is ConfigEntryState.LOADED
+    assert hass.states.get("select.sungrow_sh8_0rt_v112_ems_mode").state == (
+        while_down or STATE_UNKNOWN
     )
     assert hass.states.get("number.sungrow_sh8_0rt_v112_battery_min_soc").state == "5.0"
 
 
+@SHOWN
 async def test_setup_settings_unanswered(
     hass: HomeAssistant,
-    mock_config_entry: MockConfigEntry,
     mock_modbus_unit: MockModbusUnit,
+    options: dict[str, Any],
+    while_down: str | None,
 ) -> None:
     """Test settings that time out at setup leave the measurements running."""
     fail_settings = [ModbusTimeoutError("dropped")] * 2
@@ -202,18 +241,14 @@ async def test_setup_settings_unanswered(
             raise fail_settings.pop()
         return 0
 
-    mock_config_entry.add_to_hass(hass)
     # Readings answer; the first settings read, and its retry, do not.
     mock_modbus_unit.holding[13049] = answer_or_drop
+    entry = await _async_setup(hass, options)
 
-    await hass.config_entries.async_setup(mock_config_entry.entry_id)
-    await hass.async_block_till_done()
-
-    assert mock_config_entry.state is ConfigEntryState.LOADED
+    assert entry.state is ConfigEntryState.LOADED
     assert hass.states.get("sensor.sungrow_sh8_0rt_v112_battery_level").state == "65.4"
-    assert (
-        hass.states.get("select.sungrow_sh8_0rt_v112_ems_mode").state
-        == STATE_UNAVAILABLE
+    assert hass.states.get("select.sungrow_sh8_0rt_v112_ems_mode").state == (
+        while_down or STATE_UNKNOWN
     )
 
 

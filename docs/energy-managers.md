@@ -17,6 +17,10 @@ The entity IDs below are for an inverter named "Sungrow SH8.0RT-V112". Yours sta
 | PV power | `sensor.sungrow_sh8_0rt_v112_total_dc_power` | W |
 | Battery capacity | `sensor.sungrow_sh8_0rt_v112_battery_capacity` | kWh |
 | What the battery is doing | `select.sungrow_sh8_0rt_v112_operating_mode` | Its state is the operating mode the inverter's settings match. |
+| Whether the values are current | `binary_sensor.sungrow_sh8_0rt_v112_connected` | Off while the inverter does not answer |
+| When the values were read | `sensor.sungrow_sh8_0rt_v112_last_reading` | Timestamp |
+
+**Check Connected before acting on a value.** While the inverter does not answer, the entities keep the last value read instead of going unavailable, so a battery level or grid power can be out of date without looking it. See [When the inverter does not answer](troubleshooting.md#when-the-inverter-does-not-answer).
 
 Measurements are read every 5 seconds over the LAN port and every 10 through a WiNet-S, settings every 60. A manager that needs fresher values can have the measurements read more often; see [How often it reads](connecting.md#how-often-it-reads).
 

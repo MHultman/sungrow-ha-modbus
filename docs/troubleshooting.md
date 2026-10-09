@@ -18,15 +18,28 @@ Work through these in order:
 
 "Something answered, but it is not a Sungrow hybrid inverter" means the device at that address refused the identity registers: check the address and the device ID.
 
-## Some entities are unavailable
+## When the inverter does not answer
 
-Some inverters, and the WiNet-S, do not serve every register. The integration reads registers in blocks, and a block the inverter refuses makes only its own entities unavailable, with a warning in the log naming the block. A block refused 5 polls in a row also gets a repair notice under **Settings → System → Repairs**, which goes away by itself if the block answers again. Single-phase SH-RS models in particular serve fewer registers. That is decided by Sungrow's firmware: disable the entities you do not need, or ignore the notice. If your model should have them, open an [issue](https://github.com/MHultman/sungrow-ha-modbus/issues) with the [diagnostics](#diagnostics).
+By default, entities never go unavailable. While the inverter does not answer, every entity keeps the last value it read, and two diagnostic entities on the device say whether the values are current:
+
+- **Connected** is on while the last reading of the measurements was answered, and off while it was not.
+- **Last reading** is when the measurements were last read.
+
+So a value can be out of date without looking it. Before an automation or energy manager acts on one, have it check that **Connected** is on, or that **Last reading** is recent. Graphs show a flat line through an outage. The energy counters, and with them the Energy dashboard, are not affected: a counter that does not move adds nothing.
+
+To have entities go unavailable instead while their values are not current, open **Configure** on the integration and turn on **Show as unavailable when the inverter does not answer**. Graphs then show a gap, and automations see `unavailable`.
+
+The controls keep their last setting too. Changing one while the inverter does not answer gives an error.
+
+## Some entities never get a value
+
+Some inverters, and the WiNet-S, do not serve every register. The integration reads registers in blocks, and a block the inverter refuses touches only its own entities, with a warning in the log naming the block. Entities whose block never answered show as unknown, or as unavailable with **Show as unavailable when the inverter does not answer** on. A block refused 5 polls in a row also gets a repair notice under **Settings → System → Repairs**, which goes away by itself if the block answers again. Single-phase SH-RS models in particular serve fewer registers. That is decided by Sungrow's firmware: disable the entities you do not need, or ignore the notice. If your model should have them, open an [issue](https://github.com/MHultman/sungrow-ha-modbus/issues) with the [diagnostics](#diagnostics).
 
 Disabled entities (like the meter values and the per-phase backup power) are disabled on purpose; enable them in the entity settings if you want them. See [Supported inverters](supported-inverters.md#connection-makes-a-difference-too).
 
-## Everything goes unavailable now and then
+## Connected turns off now and then
 
-The link dropped for longer than one retry. The integration reads again at the next interval and recovers by itself. If it happens often on a WiNet-S:
+The link dropped for longer than one retry. The integration reads again at the next interval and recovers by itself, and the entities keep their last values meanwhile. If it happens often on a WiNet-S:
 
 - If you shortened the **Measurement interval** under **Configure**, lengthen it again, or empty it for the default of 10 seconds. See [How often it reads](connecting.md#how-often-it-reads).
 - Make sure **Connected through** is set to **WiNet-S dongle**: it gives the dongle more time.

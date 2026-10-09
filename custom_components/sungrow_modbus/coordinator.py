@@ -7,7 +7,10 @@ from typing import TYPE_CHECKING, override
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.helpers.update_coordinator import (
+    TimestampDataUpdateCoordinator,
+    UpdateFailed,
+)
 
 from .const import DOMAIN, LOGGER
 from .inverter import PollReport, SungrowConnectionError, SungrowInverter
@@ -20,7 +23,7 @@ if TYPE_CHECKING:
 type SungrowModbusConfigEntry = ConfigEntry[SungrowModbusRuntimeData]
 
 
-class SungrowModbusDataUpdateCoordinator(DataUpdateCoordinator[PollReport]):
+class SungrowModbusDataUpdateCoordinator(TimestampDataUpdateCoordinator[PollReport]):
     """Polls one set of the inverter's register blocks over Modbus.
 
     A poll can come back partial: a block the inverter refuses only takes its
@@ -105,6 +108,9 @@ class SungrowModbusRuntimeData:
     device_info: DeviceInfo
     # The most the battery power controls go to, if the user set one.
     battery_max_power: int | None = None
+    # Whether entities go unavailable while their values are not current,
+    # rather than keep the last ones read.
+    show_unavailable: bool = False
     # What the force battery action drives, while it is enabled and added.
     operating_mode: SungrowModbusOperatingModeSelectEntity | None = None
 

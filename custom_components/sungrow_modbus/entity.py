@@ -77,12 +77,17 @@ class SungrowModbusEntity(CoordinatorEntity[SungrowModbusDataUpdateCoordinator])
     @property
     @override
     def available(self) -> bool:
-        """Return whether every block this entity reads answered the last poll.
+        """Return whether to show the entity's value.
 
-        An entity that reports a value from an earlier read as if it were
-        current is lying about the device.
+        By default the last value read stays up while the inverter does not
+        answer, and the Connected and Last reading entities say whether values
+        are current. Set in the options, entities go unavailable instead.
         """
-        return super().available and not any(
+        return not self._runtime_data.show_unavailable or self._is_current()
+
+    def _is_current(self) -> bool:
+        """Return whether every block this entity reads answered the last poll."""
+        return self.coordinator.last_update_success and not any(
             self._runtime_data.failed(block) for block in self.entity_description.blocks
         )
 
@@ -121,3 +126,17 @@ class SungrowModbusEntity(CoordinatorEntity[SungrowModbusDataUpdateCoordinator])
 
         for coordinator in (self._runtime_data.readings, self._runtime_data.settings):
             coordinator.async_update_listeners()
+
+
+class SungrowModbusStatusEntity(SungrowModbusEntity):
+    """An entity about the link to the inverter, rather than a value read.
+
+    It follows the measurements' polls. It is never unavailable itself: it is
+    how the other entities' last values are told apart from current ones.
+    """
+
+    @property
+    @override
+    def available(self) -> bool:
+        """Return that the entity always has something to say."""
+        return True

@@ -12,11 +12,16 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
     BinarySensorEntityDescription,
 )
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .coordinator import SungrowModbusConfigEntry
-from .entity import SungrowModbusEntity, SungrowModbusEntityDescription
+from .entity import (
+    SungrowModbusEntity,
+    SungrowModbusEntityDescription,
+    SungrowModbusStatusEntity,
+)
 from .registers import POWER_FLOW_STATUS, SYSTEM, Block
 
 PARALLEL_UPDATES = 0
@@ -75,6 +80,23 @@ BINARY_SENSORS: tuple[SungrowModbusBinarySensorEntityDescription, ...] = (
 )
 
 
+@dataclass(frozen=True, kw_only=True)
+class SungrowModbusStatusBinarySensorEntityDescription(
+    BinarySensorEntityDescription, SungrowModbusEntityDescription
+):
+    """Describes a binary sensor about the link to the inverter."""
+
+
+# Whether the last poll of the measurements was answered.
+CONNECTED = SungrowModbusStatusBinarySensorEntityDescription(
+    key="connected",
+    translation_key="connected",
+    device_class=BinarySensorDeviceClass.CONNECTIVITY,
+    entity_category=EntityCategory.DIAGNOSTIC,
+    blocks=(),
+)
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: SungrowModbusConfigEntry,
@@ -82,8 +104,13 @@ async def async_setup_entry(
 ) -> None:
     """Set up SunGrow Modbus binary sensor entities based on a config entry."""
     async_add_entities(
-        SungrowModbusBinarySensorEntity(entry=entry, description=description)
-        for description in BINARY_SENSORS
+        [
+            SungrowModbusConnectedEntity(entry=entry, description=CONNECTED),
+            *(
+                SungrowModbusBinarySensorEntity(entry=entry, description=description)
+                for description in BINARY_SENSORS
+            ),
+        ]
     )
 
 
@@ -100,3 +127,13 @@ class SungrowModbusBinarySensorEntity(SungrowModbusEntity, BinarySensorEntity):
         if not isinstance(status, int):
             return None
         return bool(status >> self.entity_description.bit & 1)
+
+
+class SungrowModbusConnectedEntity(SungrowModbusStatusEntity, BinarySensorEntity):
+    """Says whether the measurements shown are current."""
+
+    @property
+    @override
+    def is_on(self) -> bool:
+        """Return whether the last poll of the measurements was answered."""
+        return self.coordinator.last_update_success

@@ -62,6 +62,9 @@
   },
   "entity": {
     "binary_sensor": {
+      "connected": {
+        "name": "Ansluten"
+      },
       "battery_charging": {
         "name": "Batteriet laddas"
       },
@@ -168,6 +171,9 @@
       }
     },
     "sensor": {
+      "last_reading": {
+        "name": "Senaste avläsning"
+      },
       "backup_phase_a_power": {
         "name": "Backupeffekt fas A"
       },
@@ -492,11 +498,13 @@
       "init": {
         "data": {
           "battery_max_power": "Batteriets max effekt",
-          "readings_interval": "Mätintervall"
+          "readings_interval": "Mätintervall",
+          "show_unavailable": "Visa som otillgänglig när växelriktaren inte svarar"
         },
         "data_description": {
           "battery_max_power": "Begränsar reglagen för forcerad laddning/urladdning och batteriets max ladd- och urladdningseffekt, till exempel till vad batteritillverkaren rekommenderar. Lämna tomt för att tillåta upp till växelriktarens märkeffekt.",
-          "readings_interval": "Hur ofta mätvärdena läses av, i sekunder. Lämna tomt för den här anslutningens standardvärde, {default} sekunder; det lägsta som tillåts är {minimum}.\n\nKortare ger mer aktuella värden, men har ett pris: varje mätvärde som ändrats skrivs till Home Assistants databas vid varje avläsning, så databasen växer snabbare, och växelriktaren får svara på fler förfrågningar. En WiNet-S tappar förfrågningar när den tillfrågas för ofta, och entiteter blir då otillgängliga. Längre gör att värden och grafer släpar efter, och att energistyrningar reagerar senare. Inställningarna läses av var 60:e sekund oavsett, och en ändring du gör syns direkt."
+          "readings_interval": "Hur ofta mätvärdena läses av, i sekunder. Lämna tomt för den här anslutningens standardvärde, {default} sekunder; det lägsta som tillåts är {minimum}.\n\nKortare ger mer aktuella värden, men har ett pris: varje mätvärde som ändrats skrivs till Home Assistants databas vid varje avläsning, så databasen växer snabbare, och växelriktaren får svara på fler förfrågningar. En WiNet-S tappar förfrågningar när den tillfrågas för ofta, och entiteter blir då otillgängliga. Längre gör att värden och grafer släpar efter, och att energistyrningar reagerar senare. Inställningarna läses av var 60:e sekund oavsett, och en ändring du gör syns direkt.",
+          "show_unavailable": "Av (standard): varje entitet behåller det senast avlästa värdet medan växelriktaren inte svarar, så inget blir otillgängligt. Värdena kan då vara inaktuella: **Ansluten** slås av och **Senaste avläsning** visar när de lästes, så kontrollera dem innan en automation agerar på ett värde.\n\nPå: entiteter blir otillgängliga medan deras värden inte är aktuella och kommer tillbaka med nästa svar. Grafer visar ett glapp i stället för en platt linje."
         },
         "title": "Alternativ"
       }
@@ -544,7 +552,7 @@
   "issues": {
     "refused_registers": {
       "title": "{inverter} svarar inte på vissa register",
-      "description": "Växelriktaren har vägrat svara för de här registren vid varje avläsning i rad: {blocks}. Entiteterna som läses från dem förblir otillgängliga.\n\nOftast har modellen eller dess firmware inte dem. Du kan inaktivera de entiteterna eller ignorera det här. Om din växelriktare borde ha dem, öppna ett ärende på GitHub och bifoga diagnostiken."
+      "description": "Växelriktaren har vägrat svara för de här registren vid varje avläsning i rad: {blocks}. Entiteterna som läses från dem visar inget aktuellt värde.\n\nOftast har modellen eller dess firmware inte dem. Du kan inaktivera de entiteterna eller ignorera det här. Om din växelriktare borde ha dem, öppna ett ärende på GitHub och bifoga diagnostiken."
     },
     "unknown_model": {
       "title": "{inverter} är konfigurerad som skrivskyddad",

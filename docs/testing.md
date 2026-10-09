@@ -25,7 +25,7 @@ A checklist for trying the integration on a real inverter, step by step, from re
   - [ ] Load power (the house)
   - [ ] Daily PV generation, import, export, battery charge and discharge
 - [ ] The phase B and C entities exist only on a three-phase inverter, and MPPT 3 and 4 only where the inverter has them.
-- [ ] Leave it for an hour: the lifetime energy counters only go up, and nothing goes unavailable for long.
+- [ ] Leave it for an hour: the lifetime energy counters only go up, and **Connected** stays on, or is only off for moments.
 - [ ] **Download diagnostics** from the device page works. Keep the file for the report.
 
 ## 2. Settings read back
@@ -84,7 +84,8 @@ Under **Developer tools → Actions**, pick **SunGrow Modbus: Force battery**.
 
 ## 7. Connection
 
-- [ ] Unplug the inverter's network cable, or restart the WiNet-S, for a few minutes: the entities go unavailable, and come back by themselves afterwards.
+- [ ] Unplug the inverter's network cable, or restart the WiNet-S, for a few minutes: **Connected** turns off, the entities keep their last values, and **Last reading** stops moving. Afterwards it all comes back by itself.
+- [ ] With **Show as unavailable when the inverter does not answer** turned on under **Configure**, the same: the entities go unavailable instead, and come back afterwards.
 - [ ] Restart Home Assistant: everything comes back, and nothing is written to the inverter by the restart (its settings in iSolarCloud stay as they were).
 
 ## 8. Start and stop

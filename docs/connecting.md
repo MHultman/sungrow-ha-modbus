@@ -31,7 +31,7 @@ The measurements (power, energy, battery level and the rest) are read every 5 se
 To change how often the measurements are read, open **Configure** on the integration and set **Measurement interval**, from 2 seconds over the LAN port or 5 through a WiNet-S, up to 5 minutes. Leave it empty for the default; the default also follows the connection if you reconfigure it. Before you shorten it:
 
 - **The database grows faster.** Home Assistant writes every measurement that changed at each reading, and power values change at almost every one. Halving the interval roughly doubles what is written, which adds up over the months the recorder keeps.
-- **The inverter answers more requests.** The LAN port copes with that easily. A WiNet-S does not: asked too often, it drops requests, and entities go unavailable. If they do, lengthen the interval.
+- **The inverter answers more requests.** The LAN port copes with that easily. A WiNet-S does not: asked too often, it drops requests, and the values stop updating (**Connected** turns off). If that happens, lengthen the interval.
 - **It may not get you fresher values.** How often Sungrow updates the registers inside the inverter is not documented; reading faster than that only repeats the same values.
 
 A longer interval goes the other way: a smaller database and a quieter link, but values and graphs lag behind, and energy managers and automations react later. The Energy dashboard does not need fast readings: it works from the energy counters, which are exact at any interval.

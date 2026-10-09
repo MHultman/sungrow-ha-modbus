@@ -15,6 +15,7 @@ from custom_components.sungrow_modbus.const import (
     CONF_BATTERY_MAX_POWER,
     CONF_CONNECTION,
     CONF_READINGS_INTERVAL,
+    CONF_SHOW_UNAVAILABLE,
     CONF_UNIT_ID,
     CONNECTION_LAN,
     CONNECTION_WINET,
@@ -229,3 +230,24 @@ async def test_options_readings_interval_below_minimum(
         await hass.config_entries.options.async_configure(
             result["flow_id"], {CONF_READINGS_INTERVAL: 3}
         )
+
+
+@pytest.mark.parametrize(
+    ("show_unavailable", "options"),
+    [(True, {CONF_SHOW_UNAVAILABLE: True}), (False, {})],
+)
+async def test_options_show_unavailable(
+    hass: HomeAssistant,
+    init_integration: MockConfigEntry,
+    show_unavailable: bool,
+    options: dict[str, bool],
+) -> None:
+    """Test entities can be set to go unavailable; off is the default, not stored."""
+    result = await hass.config_entries.options.async_init(init_integration.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {CONF_SHOW_UNAVAILABLE: show_unavailable}
+    )
+    await hass.async_block_till_done()
+
+    assert init_integration.options == options
+    assert init_integration.runtime_data.show_unavailable is show_unavailable

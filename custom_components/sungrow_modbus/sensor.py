@@ -2,6 +2,7 @@
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any, override
 
 from homeassistant.components.sensor import (
@@ -29,7 +30,11 @@ from homeassistant.helpers.typing import StateType
 from . import registers as reg
 from .const import LOGGER
 from .coordinator import SungrowModbusConfigEntry
-from .entity import SungrowModbusEntity, SungrowModbusEntityDescription
+from .entity import (
+    SungrowModbusEntity,
+    SungrowModbusEntityDescription,
+    SungrowModbusStatusEntity,
+)
 from .inverter import SungrowInverter
 from .models import InverterModel
 from .registers import Register
@@ -713,6 +718,23 @@ SENSORS: tuple[SungrowModbusSensorEntityDescription, ...] = (
 )
 
 
+@dataclass(frozen=True, kw_only=True)
+class SungrowModbusStatusSensorEntityDescription(
+    SensorEntityDescription, SungrowModbusEntityDescription
+):
+    """Describes a sensor about the link to the inverter."""
+
+
+# When the measurements were last read.
+LAST_READING = SungrowModbusStatusSensorEntityDescription(
+    key="last_reading",
+    translation_key="last_reading",
+    device_class=SensorDeviceClass.TIMESTAMP,
+    entity_category=EntityCategory.DIAGNOSTIC,
+    blocks=(),
+)
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: SungrowModbusConfigEntry,
@@ -722,13 +744,18 @@ async def async_setup_entry(
     model = entry.runtime_data.inverter.identity.model
 
     async_add_entities(
-        (
-            SungrowModbusLifetimeSensorEntity
-            if description.lifetime
-            else SungrowModbusSensorEntity
-        )(entry=entry, description=description)
-        for description in SENSORS
-        if description.exists_fn(model)
+        [
+            SungrowModbusLastReadingEntity(entry=entry, description=LAST_READING),
+            *(
+                (
+                    SungrowModbusLifetimeSensorEntity
+                    if description.lifetime
+                    else SungrowModbusSensorEntity
+                )(entry=entry, description=description)
+                for description in SENSORS
+                if description.exists_fn(model)
+            ),
+        ]
     )
 
 
@@ -789,3 +816,13 @@ class SungrowModbusLifetimeSensorEntity(SungrowModbusSensorEntity, RestoreSensor
             self._glitch_logged = True
 
         return self._highest_value
+
+
+class SungrowModbusLastReadingEntity(SungrowModbusStatusEntity, SensorEntity):
+    """Says when the measurements shown were read."""
+
+    @property
+    @override
+    def native_value(self) -> datetime | None:
+        """Return when the measurements were last read."""
+        return self.coordinator.last_update_success_time

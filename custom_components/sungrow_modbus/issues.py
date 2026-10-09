@@ -104,5 +104,5 @@ class RefusedBlocks:
                 "inverter": self._entry.title,
                 "blocks": ", ".join(sorted(refused)),
             },
-            learn_more_url=f"{DOCS}/troubleshooting.md#some-entities-are-unavailable",
+            learn_more_url=f"{DOCS}/troubleshooting.md#some-entities-never-get-a-value",
         )
