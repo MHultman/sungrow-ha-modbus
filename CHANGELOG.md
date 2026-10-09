@@ -4,7 +4,7 @@
 
 ### Changed
 
-- A new icon: the S from Sungrow's wordmark, in its orange.
+- A new icon: an inverter with Sungrow's S, linked to a battery.
 
 ## 0.7.1 - 2026-10-09
 
