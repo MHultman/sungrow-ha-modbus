@@ -82,7 +82,7 @@ python3.14 -m venv .venv
 
 The tests run the integration against the in-memory Modbus unit from the `modbus-connection` library, seeded with a synthetic SH8.0RT-V112.
 
-The brand icon in `custom_components/sungrow_modbus/brand/` is drawn from the SVGs in `script/brand/`, rendered at 256 and 512 pixels on a transparent background.
+The brand icon in `custom_components/sungrow_modbus/brand/` is drawn from the SVGs in `script/brand/`, rendered at 256 and 512 pixels on a transparent background. Home Assistant 2026.3 and later show it on the integration. HACS's own lists do not show icons that come with a custom integration yet ([hacs/integration#5171](https://github.com/hacs/integration/issues/5171)), and the home-assistant/brands repository no longer takes custom integrations, so they show none until HACS adds that.
 
 [Models and entities](docs/models-and-entities.md) is generated from the code. After changing models, entities or their English names, regenerate it with `python -m script.generate_docs`; a test fails while it is out of date.
 

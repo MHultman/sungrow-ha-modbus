@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- A new icon: an S in a sun.
+
 ## 0.7.1 - 2026-10-09
 
 ### Added
