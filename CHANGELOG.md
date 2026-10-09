@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- [Keeping your history](https://github.com/MHultman/sungrow-ha-modbus/blob/main/docs/migrating-from-yaml.md#keeping-your-history) in the migration guide: giving the new entities the YAML package's entity IDs carries on their long-term statistics and Energy dashboard history. The guide used to say this was not possible.
+
 ## 0.6.3 - 2026-10-08
 
 ### Added

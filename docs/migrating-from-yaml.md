@@ -8,10 +8,29 @@ How to move from mkaiser's [Sungrow-SHx-Inverter-Modbus-Home-Assistant](https://
 2. **Turn off the YAML package.** Remove the `modbus_sungrow` line from `packages:` in `configuration.yaml` (or comment out the `modbus:` section of `modbus_sungrow.yaml`), check the configuration, and restart Home Assistant.
 3. **Add this integration**: see [Installation](../README.md#installation). Pick **WiNet-S dongle** or **the inverter's own LAN port** to match what the YAML's `host` pointed at. The YAML's `sungrow_modbus_wait_milliseconds`, `delay` and `timeout` are not needed: the connection choice sets them.
 4. **Carry over the battery power limit.** If you set `sungrow_modbus_battery_max_power` in `secrets.yaml`, set the same value as **Battery max power** under **Configure**. See [Capping the battery power](controls.md#capping-the-battery-power).
-5. **Point everything at the new entities**: the [Energy dashboard](energy-dashboard.md), automations, scripts, scenes and dashboards. The YAML package's scenes are options of the **Operating mode** and **Export mode** selects; see [Controls](controls.md#operating-mode-and-export-mode).
-6. **Clean up the old entities.** Go to **Settings → Devices & services → Entities**, filter on status *Unavailable* and integration *Modbus* (and *Template* for the YAML's template sensors), select them, and delete them. Their long-term statistics stay until you remove those under **Developer tools → Statistics**.
+5. **Clean up the old entities.** Go to **Settings → Devices & services → Entities**, filter on status *Unavailable* and integration *Modbus* (and *Template* for the YAML's template sensors), select them, and delete them. Their long-term statistics stay: do **not** delete those under **Developer tools → Statistics** if you want to keep your history.
+6. **Keep your history, where you want it**: give the new entities the old entity IDs. See [Keeping your history](#keeping-your-history). Do this soon after adding the integration.
+7. **Point everything else at the new entities**: the [Energy dashboard](energy-dashboard.md), automations, scripts, scenes and dashboards, for the entities that did not take an old ID. The YAML package's scenes are options of the **Operating mode** and **Export mode** selects; see [Controls](controls.md#operating-mode-and-export-mode).
 
-Long-term statistics are not joined: the new entities start their history from the day you switch.
+## Keeping your history
+
+Home Assistant keeps long-term statistics (the Energy dashboard, and the hourly history of every sensor) by entity ID. Give a new entity the ID its YAML counterpart had, and it carries on the old statistics as if nothing changed. The Energy dashboard, automations and dashboards that use that ID keep working without being touched.
+
+For each entity whose history you want to keep, once the old one is deleted (step 5):
+
+1. Find its new counterpart in the [table below](#entity-names), and open it under **Settings → Devices & services → Entities**.
+2. Open its settings (the cog), change **Entity ID** to the old one, for example `sensor.total_pv_generation`, and press **Update**.
+3. In **Developer tools → Statistics**, the statistics the new entity gathered under its own ID until then now show an issue. Those few hours can be deleted. The old ID's statistics are the ones being continued.
+
+Home Assistant's log says "Cannot rename statistic_id … because the new statistic_id is already in use" at the rename. That is expected: it is why the old statistics are kept, rather than replaced by the new entity's.
+
+Worth knowing:
+
+- **Do the energy counters first.** The daily and lifetime energy sensors are what the Energy dashboard reads, and the ones with history worth keeping. Join daily to daily and lifetime to lifetime, as the table pairs them.
+- **Units have to match.** The energy counters are kWh on both sides. If an old sensor used another unit, **Developer tools → Statistics** offers to change the statistics' unit or delete them: change the unit, never delete.
+- **Mind the sign.** Grid power is positive while importing here, where the YAML's `sensor.export_power_raw` was positive while exporting. Joining the two flips the graph at the switch. Leave those unjoined, or accept the flip.
+- **The switch-over is not lost.** Energy counted while neither was running shows up in the first hour after the new entity takes over.
+- **Do it early.** Anything the new entity records under its own ID before the rename stays apart from the old history.
 
 ## Entity names
 

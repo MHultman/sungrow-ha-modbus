@@ -33,4 +33,4 @@ Both kinds also ignore the inverter's "not available" value, which would otherwi
 
 ## Moving over from the YAML package
 
-The dashboard does not move over by itself: replace each YAML sensor with the one above. The long-term statistics of the old sensors stay in Home Assistant, but they are not joined to the new ones. See [Migrating from the YAML package](migrating-from-yaml.md).
+To keep your energy history, give the new sensors the entity IDs the YAML sensors had: the dashboard then carries on as before, with nothing to change. See [Keeping your history](migrating-from-yaml.md#keeping-your-history). Otherwise, replace each YAML sensor with the one above; the old sensors' statistics stay in Home Assistant, but apart from the new ones.
